@@ -46,7 +46,7 @@ public class UserService {
         roles.add("admin");
         json.put("roles", roles);
         json.put("introduction","我是管理员");
-        json.put("avatar","/public/images/default_head.gif");
+        json.put("avatar","https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif");
         return ResponseData.success(json);
     }
 
