@@ -14,8 +14,9 @@ public class ResponseData {
     private  int code = 200;
     private  String message;
     private  String data;
-    public String getData(){
-        if (data != null) return AESUtils.Encrypt(data);
+    public JSONObject getData(){
+//        if (data != null) return AESUtils.Encrypt(data);
+        if (data != null) return JSONObject.parseObject(data);
         return null;
     }
 

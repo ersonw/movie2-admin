@@ -17,9 +17,9 @@ import java.util.*;
 @Repository
 public class AuthDao {
     @Autowired
-    UserDao userDao;
+    private UserDao userDao;
     @Autowired
-    RedisTemplate redisTemplate;
+    private RedisTemplate redisTemplate;
     private static final Timer timer = new Timer();
     public void pushOrder(EPayData data){
         EPayData object = findOrderByOrderId(data.getOut_trade_no());
@@ -171,13 +171,16 @@ public class AuthDao {
     public void popUser(SysUser userToken){
         redisTemplate.opsForSet().remove("sysUsers" ,userToken);
     }
-    public SysUser findUSysUserByToken(String token) {
+    public SysUser findSysUserByToken(String token) {
         Set users = redisTemplate.opsForSet().members("sysUsers");
-        if (users != null){
-            for (Object user: users) {
-                ObjectMapper objectMapper = new ObjectMapper();
+//        System.out.println(users);
+        if (users == null) return null;
+        for (Object user: users) {
+//            System.out.println(user);
+            ObjectMapper objectMapper = new ObjectMapper();
+            if (user != null){
                 SysUser userEntity = objectMapper.convertValue(user,SysUser.class);
-                if (userEntity.getToken().equals(token)){
+                if (userEntity != null && token.equals(userEntity.getToken())){
                     return userEntity;
                 }
             }

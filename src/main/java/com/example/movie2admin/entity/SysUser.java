@@ -1,8 +1,10 @@
 package com.example.movie2admin.entity;
 
+import com.alibaba.fastjson.JSONObject;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.*;
 
@@ -24,4 +26,9 @@ public class SysUser {
     private long updateTime;
     @Transient
     private String token;
+
+    public static SysUser getUser(String user) {
+        if(StringUtils.isEmpty(user)) return null;
+        return JSONObject.toJavaObject(JSONObject.parseObject(user),SysUser.class);
+    }
 }

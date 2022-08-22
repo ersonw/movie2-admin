@@ -7,6 +7,7 @@ import com.example.movie2admin.dao.UserDao;
 import com.example.movie2admin.entity.SysUser;
 import com.example.movie2admin.util.AESUtils;
 import com.example.movie2admin.util.ToolsUtil;
+import com.example.movie2admin.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -22,7 +23,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
+//@Component
 @WebFilter(filterName = "myFilter", urlPatterns = {"/api/*"})
 //@Order(10000)
 public class MyFilter implements Filter {
@@ -33,7 +34,8 @@ public class MyFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-//        authDao = new AuthDao();
+        authDao = Utils.getAuthDao();
+        userDao = Utils.getUserRepository();
     }
     /**
      * 获取访问者IP
@@ -83,6 +85,7 @@ public class MyFilter implements Filter {
             String userAgent = request.getHeader("User-Agent");
 //            System.out.println(userAgent);
             String token = ((HttpServletRequest) req).getHeader("Token");
+//            System.out.println(token);
             String ip = getIpAddr(request);
 //            System.out.printf(ip+"\n");
             String serverName = request.getServerName();//返回服务器的主机名
@@ -94,7 +97,8 @@ public class MyFilter implements Filter {
 //            System.out.printf(schema+"\n");
             SysUser user = null;
             if (StringUtils.isNotEmpty(token)){
-                user = authDao.findUSysUserByToken(token);
+                user = authDao.findSysUserByToken(token);
+//                System.out.println(user);
                 if (token.equals("e4188bce3f35436f9dc5f0e627d093e31651674631238")) {
                     user = userDao.findAllById(1);
                 }
@@ -102,14 +106,14 @@ public class MyFilter implements Filter {
             if (request.getMethod().equals("GET")){
                 Map<String, String[]> parameterMap = new HashMap(request.getParameterMap());
                 ParameterRequestWrapper wrapper = new ParameterRequestWrapper(request, parameterMap);
-                wrapper.addParameter("ip", ip);
-                wrapper.addParameter("isWeb", userAgent != null && !userAgent.contains("dart:io"));
-                wrapper.addParameter("serverName", serverName);
-                wrapper.addParameter("serverPort", String.valueOf(serverPort));
-                wrapper.addParameter("uri", uri);
-                wrapper.addParameter("url", url);
-                wrapper.addParameter("schema", schema);
-                wrapper.addParameter("query", query);
+                if(StringUtils.isNotEmpty(ip)) wrapper.addParameter("ip", ip);
+                if(StringUtils.isNotEmpty(userAgent)) wrapper.addParameter("isWeb", !userAgent.contains("dart:io"));
+                if(StringUtils.isNotEmpty(serverName)) wrapper.addParameter("serverName", serverName);
+                if(StringUtils.isNotEmpty(serverPort)) wrapper.addParameter("serverPort", String.valueOf(serverPort));
+                if(StringUtils.isNotEmpty(uri)) wrapper.addParameter("uri", uri);
+                if(StringUtils.isNotEmpty(url)) wrapper.addParameter("url", url);
+                if(StringUtils.isNotEmpty(schema)) wrapper.addParameter("schema", schema);
+                if(StringUtils.isNotEmpty(query)) wrapper.addParameter("query", query);
                 if (user != null){
                     wrapper.addParameter("user", JSONObject.toJSONString(user));
                 }
@@ -119,10 +123,10 @@ public class MyFilter implements Filter {
                     if (contentType.contains(MediaType.APPLICATION_JSON_VALUE)){
                         String postContent = ToolsUtil.getJsonBodyString(request);
 //                        System.out.println(postContent);
-                        String s =  AESUtils.Decrypt(postContent);
-                        if (s != null){
-                            postContent = s;
-                        }
+//                        String s =  AESUtils.Decrypt(postContent);
+//                        if (s != null){
+//                            postContent = s;
+//                        }
                         JSONObject jsStr = null;
                         if (StringUtils.isNotEmpty(postContent) && postContent.startsWith("{") && postContent.endsWith("}")) {
                             //修改、新增、删除参数

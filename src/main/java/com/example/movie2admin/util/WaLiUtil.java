@@ -218,7 +218,7 @@ public class WaLiUtil {
                 StringUtils.isNotEmpty(signKey)
         ) {
             System.out.println("瓦力游戏配置加载成功！");
-            _timersRecords();
+//            _timersRecords();
         }
 
     }
