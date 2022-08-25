@@ -15,7 +15,15 @@ public interface VideoDao extends JpaRepository<Video, Long>, CrudRepository<Vid
     Video findAllByShareId(String shareId);
     Video findAllById(long id);
     Page<Video> findAllByTitle(String title, Pageable pageable);
+    @Query(value = "SELECT * FROM `video` WHERE title LIKE :title AND status > -1", nativeQuery = true)
+    Page<Video> getAllByTitle(String title, Pageable pageable);
+    @Query(value = "SELECT * FROM `video` WHERE status > -1", nativeQuery = true)
+    Page<Video> getAll(Pageable pageable);
     Page<Video> findAllByTitleLikeAndStatus(String title,int status, Pageable pageable);
+    @Query(value = "SELECT v.* FROM `video` AS v INNER JOIN video_pay AS vp ON vp.video_id = v.id", nativeQuery = true)
+    Page<Video> getAllPrice(Pageable pageable);
+    @Query(value = "SELECT v.* FROM `video` AS v INNER JOIN video_pay AS vp ON vp.video_id = v.id WHERE v.title LIKE :title", nativeQuery = true)
+    Page<Video> getAllPriceByTitle(String title,Pageable pageable);
 
     //无跟条件
     Page<Video> findAllByStatus(int status, Pageable pageable);

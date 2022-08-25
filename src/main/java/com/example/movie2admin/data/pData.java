@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @ApiModel
 public  class pData  {
@@ -49,11 +51,19 @@ public  class pData  {
     private String address;
     @ApiModelProperty(name = "amount", value= "数量",required = false)
     private long amount;
+    @ApiModelProperty(name = "plays", value= "播放基数",required = false)
+    private long plays;
+    @ApiModelProperty(name = "likes", value= "点赞基数",required = false)
+    private long likes;
+    @ApiModelProperty(name = "title", value= "标题",required = false)
+    private String title;
     @ApiModelProperty(name = "price", value= "金额",required = false)
     private double price;
 
     @ApiModelProperty(name = "oss", value= "oss配置",required = false)
     private String oss;
+    @ApiModelProperty(name = "ids", value= "ID列表",required = false)
+    private List<Long> ids;
     public OssConfig getOss() {
         if (oss != null) return JSONObject.toJavaObject(JSONObject.parseObject(oss),OssConfig.class);
         return null;
