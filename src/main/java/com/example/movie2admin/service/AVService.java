@@ -272,7 +272,7 @@ public class AVService {
         page--;
         if (page < 0) page = 0;
         if (limit < 0) limit = 20;
-        Pageable pageable = PageRequest.of(page,limit);
+        Pageable pageable = PageRequest.of(page,limit,Sort.by(Sort.Direction.DESC,"addTime"));
         Page<VideoComment> commentPage;
         if(StringUtils.isNotEmpty(title)){
             commentPage = videoCommentDao.getAllByTitle("%"+title+"%",pageable);
