@@ -95,4 +95,23 @@ public class AVControl {
     public ResponseData deleteOrder(@RequestBody pData data){
         return service.deleteOrder(data.getIds(),data.getUser(), data.getIp());
     }
+    @GetMapping("/getCommentList")
+    public ResponseData getCommentList(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getCommentList(title,page,limit,SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteComment")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteComment(@RequestBody pData data){
+        return service.deleteComment(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/passComment")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData passComment(@RequestBody pData data){
+        return service.passComment(data.getIds(),data.getUser(), data.getIp());
+    }
 }

@@ -28,4 +28,8 @@ public interface VideoCommentDao extends JpaRepository<VideoComment, Long>, Crud
     @Modifying
     @Query(value = "DELETE vc.*,vcl.* FROM video_comment as vc LEFT JOIN video_comment_like as vcl ON vcl.comment_id=vc.id WHERE vc.reply_id =:id OR vc.id=:id", nativeQuery = true)
     void removeAllById(long id);
+    @Query(value = "SELECT * FROM(SELECT vc.* FROM `video_comment` AS vc INNER JOIN video v ON v.id=vc.video_id ORDER BY vc.status ASC) AS s", nativeQuery = true)
+    Page<VideoComment> getAll(Pageable pageable);
+    @Query(value = "SELECT * FROM(SELECT vc.* FROM  video v INNER JOIN`video_comment` AS vc ON v.id=vc.video_id WHERE v.title LIKE :title ORDER BY vc.status ASC) AS s", nativeQuery = true)
+    Page<VideoComment> getAllByTitle(String title, Pageable pageable);
 }

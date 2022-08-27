@@ -266,4 +266,67 @@ public class AVService {
         videoPayRecordDao.deleteAllById(ids);
         return ResponseData.success();
     }
+
+    public ResponseData getCommentList(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit);
+        Page<VideoComment> commentPage;
+        if(StringUtils.isNotEmpty(title)){
+            commentPage = videoCommentDao.getAllByTitle("%"+title+"%",pageable);
+        }else {
+            commentPage = videoCommentDao.getAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (VideoComment comment: commentPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(comment));
+            json.put("likes",videoCommentLikeDao.countAllByCommentId(comment.getId()));
+            User u = userDao.findAllById(comment.getUserId());
+            if (u == null) {
+                json.put("nickname","用户不存在");
+            }else {
+                json.put("nickname",u.getNickname());
+            }
+            Video video = videoDao.findAllById(comment.getVideoId());
+            if (video == null) {
+                json.put("title","视频不存在");
+            }else{
+                json.put("title",video.getTitle());
+            }
+            json.put("reply","一级评论");
+            if (comment.getReplyId() > 0){
+                VideoComment c = videoCommentDao.findAllById(comment.getReplyId());
+                if (c != null) {
+                    User p = userDao.findAllById(c.getUserId());
+                    if(p != null){
+                        json.put("reply","回复["+p.getNickname()+"]:"+c.getText());
+                    }
+                }
+            }
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total",commentPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteComment(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        for (long id: ids) {
+            videoCommentDao.removeAllById(id);
+        }
+        return ResponseData.success();
+    }
+
+    public ResponseData passComment(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<VideoComment> comments = videoCommentDao.findAllById(ids);
+        for (VideoComment comment : comments) {
+            comment.setStatus(1);
+        }
+        videoCommentDao.saveAllAndFlush(comments);
+        return ResponseData.success();
+    }
 }
