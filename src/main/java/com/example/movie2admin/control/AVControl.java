@@ -114,4 +114,48 @@ public class AVControl {
     public ResponseData passComment(@RequestBody pData data){
         return service.passComment(data.getIds(),data.getUser(), data.getIp());
     }
+    @GetMapping("/getConcentration")
+    public ResponseData getConcentration(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getConcentration(title,page,limit,SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteConcentration")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteConcentration(@RequestBody pData data){
+        return service.deleteConcentration(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addConcentration")
+    @ApiGlobalModel(component = pData.class, value = "name")
+    public ResponseData addConcentration(@RequestBody pData data){
+        return service.addConcentration(data.getName(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/updateConcentration")
+    @ApiGlobalModel(component = pData.class, value = "name,id")
+    public ResponseData updateConcentration(@RequestBody pData data){
+        return service.updateConcentration(data.getId(),data.getName(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getConcentrationList/{id}")
+    public ResponseData getConcentrationList(
+            @PathVariable long id,
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getConcentrationList(id,title,page,limit,SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteConcentrationList")
+    @ApiGlobalModel(component = pData.class, value = "ids,id")
+    public ResponseData deleteConcentrationList(@RequestBody pData data){
+        return service.deleteConcentrationList(data.getIds(),data.getId(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addConcentrationList")
+    @ApiGlobalModel(component = pData.class, value = "ids,id")
+    public ResponseData addConcentrationList(@RequestBody pData data){
+        return service.addConcentrationList(data.getIds(),data.getId(),data.getUser(), data.getIp());
+    }
 }

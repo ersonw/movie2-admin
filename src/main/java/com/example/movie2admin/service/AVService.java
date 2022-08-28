@@ -272,7 +272,7 @@ public class AVService {
         page--;
         if (page < 0) page = 0;
         if (limit < 0) limit = 20;
-        Pageable pageable = PageRequest.of(page,limit,Sort.by(Sort.Direction.DESC,"addTime"));
+        Pageable pageable = PageRequest.of(page,limit,Sort.by(Sort.Direction.DESC,"add_time"));
         Page<VideoComment> commentPage;
         if(StringUtils.isNotEmpty(title)){
             commentPage = videoCommentDao.getAllByTitle("%"+title+"%",pageable);
@@ -328,5 +328,129 @@ public class AVService {
         }
         videoCommentDao.saveAllAndFlush(comments);
         return ResponseData.success();
+    }
+
+    public ResponseData getConcentration(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"add_time"));
+        Page<VideoConcentration> concentrationPage;
+        if(StringUtils.isNotEmpty(title)){
+            concentrationPage = videoConcentrationDao.getAllByName("%"+title+"%",pageable);
+        }else {
+            concentrationPage = videoConcentrationDao.getAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (VideoConcentration concentration: concentrationPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(concentration));
+            json.put("count", videoConcentrationListDao.countAllByConcentrationId(concentration.getId()));
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total",concentrationPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteConcentration(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        for (Long id : ids) {
+            videoConcentrationDao.removeAllById(id);
+        }
+        return ResponseData.success();
+    }
+
+    public ResponseData addConcentration(String name, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (StringUtils.isEmpty(name)) return ResponseData.error("类名必传!");
+        name = name.replaceAll(" ", "");
+        name = name.toUpperCase();
+        name = name.trim();
+        List<VideoConcentration> concentrations = videoConcentrationDao.findAllByName(name);
+        if (concentrations.size() > 0) return ResponseData.error("类名已存在");
+        VideoConcentration concentration = new VideoConcentration(name);
+        videoConcentrationDao.saveAndFlush(concentration);
+        JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(concentration));
+        object.put("count", 0);
+        return ResponseData.success(ResponseData.object("result", object));
+    }
+
+    public ResponseData updateConcentration(long id, String name, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (StringUtils.isEmpty(name)) return ResponseData.error("类名不允许为空!");
+        if (id < 1) return ResponseData.error("记录不存在");
+        VideoConcentration concentration = videoConcentrationDao.findAllById(id);
+        if (concentration == null) return ResponseData.error("记录不存在");
+        name = name.replaceAll(" ", "");
+        name = name.toUpperCase();
+        name = name.trim();
+        VideoConcentration c = videoConcentrationDao.findByName(name);
+        if(c != null && c.getId() != id) return ResponseData.error("类名已重复");
+        concentration.setName(name);
+        concentration.setUpdateTime(System.currentTimeMillis());
+        videoConcentrationDao.saveAndFlush(concentration);
+        JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(concentration));
+        object.put("count", 0);
+        return ResponseData.success(ResponseData.object("result", object));
+    }
+
+    public ResponseData deleteConcentrationList(List<Long> ids, long id, SysUser user, String ip) {
+//        System.out.println(ids);
+        if (user == null) return ResponseData.error(201);
+        if(id < 1) return ResponseData.error("分类不存在");
+        VideoConcentration concentration = videoConcentrationDao.findAllById(id);
+        if(concentration == null) return ResponseData.error("分类不存在");
+        videoConcentrationListDao.deleteAllById(ids);
+        return ResponseData.success();
+    }
+
+    public ResponseData addConcentrationList(List<Long> ids, long id, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if(id < 1) return ResponseData.error("分类不存在");
+        VideoConcentration concentration = videoConcentrationDao.findAllById(id);
+        if(concentration == null) return ResponseData.error("分类不存在");
+        List<VideoConcentrationList> lists = new ArrayList<>();
+        for (long i: ids) {
+            Video video = videoDao.findAllById(i);
+            List<VideoConcentrationList> list = videoConcentrationListDao.findAllByConcentrationIdAndVideoId(id,i);
+            if (video != null && list.size() == 0){
+                lists.add(new VideoConcentrationList(id,i));
+            }
+        }
+        videoConcentrationListDao.saveAllAndFlush(lists);
+        return ResponseData.success();
+    }
+
+    public ResponseData getConcentrationList(long id, String title, int page, int limit, SysUser user, String ip) {
+//        System.out.println(id);
+        if (user == null) return ResponseData.error(201);
+        if (id < 1) return ResponseData.error("记录不存在");
+        VideoConcentration concentration = videoConcentrationDao.findAllById(id);
+        if (concentration == null) return ResponseData.error("记录不存在");
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"id"));
+        Page<VideoConcentrationList> listPage;
+        if (StringUtils.isNotEmpty(title)){
+            listPage = videoConcentrationListDao.getAllByTitle("%"+title+"%",id,pageable);
+        }else{
+            listPage = videoConcentrationListDao.findAllByConcentrationId(id,pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (VideoConcentrationList list: listPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(list));
+            Video video = videoDao.findAllById(list.getVideoId());
+            json.put("className",concentration.getName());
+            json.put("title","已删除");
+            if (video != null){
+                json.put("title",video.getTitle());
+            }
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("list", array);
+        object.put("total", listPage.getTotalElements());
+        return ResponseData.success(object);
     }
 }

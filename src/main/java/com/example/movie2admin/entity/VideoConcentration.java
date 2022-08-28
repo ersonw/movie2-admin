@@ -13,6 +13,12 @@ import javax.persistence.*;
 @Cacheable
 @ToString(includeFieldNames = true)
 public class VideoConcentration {
+    public VideoConcentration(){}
+    public VideoConcentration(String name){
+        this.name = name;
+        this.addTime = System.currentTimeMillis();
+        this.updateTime = System.currentTimeMillis();
+    }
     @Id
     @GeneratedValue
     private long id;
