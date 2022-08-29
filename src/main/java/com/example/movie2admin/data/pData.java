@@ -39,6 +39,8 @@ public  class pData  {
     @ApiModelProperty(name = "duration", value= "目标ID",required = false)
     private long duration;
 
+    @ApiModelProperty(name = "trial", value= "试用",required = false)
+    private long trial;
     @ApiModelProperty(name = "text", value= "字符串",required = false)
     private String text;
     @ApiModelProperty(name = "name", value= "名称",required = false)

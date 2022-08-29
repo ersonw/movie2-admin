@@ -32,9 +32,9 @@ public class AVControl {
         return service.delete(data.getIds(),data.getUser(), data.getIp());
     }
     @PostMapping("/update")
-    @ApiGlobalModel(component = pData.class, value = "plays,likes,title,id")
+    @ApiGlobalModel(component = pData.class, value = "trial,plays,likes,title,id")
     public ResponseData update(@RequestBody pData data){
-        return service.update(data.getId(),data.getPlays(),data.getLikes(),data.getTitle(),data.getUser(), data.getIp());
+        return service.update(data.getTrial(),data.getId(),data.getPlays(),data.getLikes(),data.getTitle(),data.getUser(), data.getIp());
     }
     @PostMapping("/addPrice")
     @ApiGlobalModel(component = pData.class, value = "amount,ids")

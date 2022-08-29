@@ -52,6 +52,8 @@ public class AVService {
     private VideoPublicityDao videoPublicityDao;
     @Autowired
     private VideoPublicityReportDao videoPublicityReportDao;
+    @Autowired
+    private VideoScaleDao videoScaleDao;
 
     public boolean getConfigBool(String name){
         return getConfigLong(name) > 0;
@@ -92,7 +94,7 @@ public class AVService {
             }
             json.put("like", videoLikeDao.countAllByVideoId(video.getId()));
             json.put("play",videoPlayDao.countAllByVideoId(video.getId()));
-            json.put("scale",videoPlayDao.getScale(video.getId()).longValue());
+            json.put("scale",new Double(videoPlayDao.getScale(video.getId()) / videoScaleDao.countAllByVideoId(video.getId()) * 100).longValue());
             array.add(json);
         }
         JSONObject object = ResponseData.object("total", videoPage.getTotalElements());
@@ -111,7 +113,7 @@ public class AVService {
         return ResponseData.success();
     }
 
-    public ResponseData update(long id, long plays, long likes, String title, SysUser user, String ip) {
+    public ResponseData update(long trial,long id, long plays, long likes, String title, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
         if (id < 1) return ResponseData.error("该记录不存在!");
         Video video = videoDao.findAllById(id);
@@ -119,6 +121,7 @@ public class AVService {
         video.setPlays(plays);
         video.setLikes(likes);
         video.setTitle(title);
+        video.setTrial(trial);
         videoDao.saveAndFlush(video);
         return ResponseData.success();
     }

@@ -14,4 +14,6 @@ public interface VideoScaleDao extends JpaRepository<VideoScale, Long>, CrudRepo
     VideoScale findAllById(long id);
     List<VideoScale> findAllByUserId(long id);
     VideoScale findAllByUserIdAndVideoId(long id, long videoId);
+
+    Long countAllByVideoId(long id);
 }
