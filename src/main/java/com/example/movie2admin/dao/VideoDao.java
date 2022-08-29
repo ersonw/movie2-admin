@@ -63,5 +63,10 @@ public interface VideoDao extends JpaRepository<Video, Long>, CrudRepository<Vid
     Page<Video> getVideoByRank(long time,long vodClass,Pageable pageable);
     @Query(value = "SELECT (v.plays+(SELECT COUNT(*) FROM `video_play` WHERE video_id= v.id AND add_time >:time)) FROM `video` AS v WHERE v.id=:videoId", nativeQuery = true)
     long getVideoByRank(long time,long videoId);
-
+//    @Query(value = "SELECT * FROM video WHERE id NOT IN (    SELECT video_id FROM video_concentration_list WHERE 1) AND title LIKE :title", nativeQuery = true)
+    @Query(value = "SELECT * FROM video WHERE id NOT IN (    SELECT video_id FROM video_concentration_list as vcl INNER JOIN video AS v on v.id=vcl.video_id AND v.status =1 WHERE vcl.concentration_id = :id) AND title LIKE :title", nativeQuery = true)
+    Page<Video> getActiveList(long id, String title, Pageable pageable);
+//    @Query(value = "SELECT * FROM video WHERE id NOT IN (    SELECT video_id FROM video_concentration_list WHERE 1)", nativeQuery = true)
+    @Query(value = "SELECT * FROM video WHERE id NOT IN (    SELECT video_id FROM video_concentration_list as vcl INNER JOIN video AS v on v.id=vcl.video_id AND v.status =1 WHERE vcl.concentration_id = :id)", nativeQuery = true)
+    Page<Video> getActiveList(long id, Pageable pageable);
 }

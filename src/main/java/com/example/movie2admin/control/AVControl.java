@@ -148,6 +148,16 @@ public class AVControl {
             @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
         return service.getConcentrationList(id,title,page,limit,SysUser.getUser(user), ip);
     }
+    @GetMapping("/getActiveList/{id}")
+    public ResponseData getActiveList(
+            @PathVariable long id,
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getActiveList(id,title,page,limit,SysUser.getUser(user), ip);
+    }
     @PostMapping("/deleteConcentrationList")
     @ApiGlobalModel(component = pData.class, value = "ids,id")
     public ResponseData deleteConcentrationList(@RequestBody pData data){

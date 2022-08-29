@@ -243,16 +243,19 @@ public class AVService {
         for (VideoPayRecord record: recordPage.getContent()) {
             JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(record));
             User u = userDao.findAllById(record.getUserId());
-            if (u == null) {
-                json.put("nickname","用户不存在");
-            }else {
+            json.put("nickname","用户不存在");
+            json.put("price",0);
+            json.put("title","视频不存在");
+            if (u != null) {
                 json.put("nickname",u.getNickname());
             }
             VideoPay pay = videoPayDao.findAllById(record.getPayId());
-            if (pay == null) {
-                json.put("price",0);
-            }else {
+            if (pay != null) {
                 json.put("price",pay.getAmount());
+                Video video = videoDao.findAllById(pay.getVideoId());
+                if (video != null) {
+                    json.put("title",video.getTitle());
+                }
             }
             array.add(json);
         }
@@ -419,7 +422,18 @@ public class AVService {
             }
         }
         videoConcentrationListDao.saveAllAndFlush(lists);
-        return ResponseData.success();
+        JSONArray array = new JSONArray();
+        for (VideoConcentrationList list: lists) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(list));
+            Video video = videoDao.findAllById(list.getVideoId());
+            json.put("className",concentration.getName());
+            json.put("title","已删除");
+            if (video != null){
+                json.put("title",video.getTitle());
+            }
+            array.add(json);
+        }
+        return ResponseData.success(ResponseData.object("list", array));
     }
 
     public ResponseData getConcentrationList(long id, String title, int page, int limit, SysUser user, String ip) {
@@ -451,6 +465,43 @@ public class AVService {
         }
         JSONObject object = ResponseData.object("list", array);
         object.put("total", listPage.getTotalElements());
+        return ResponseData.success(object);
+    }
+
+    public ResponseData getActiveList(long id, String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (id < 1) return ResponseData.error("记录不存在");
+        VideoConcentration concentration = videoConcentrationDao.findAllById(id);
+        if (concentration == null) return ResponseData.error("记录不存在");
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"add_time"));
+        Page<Video> videoPage;
+        if (StringUtils.isNotEmpty(title)){
+            videoPage = videoDao.getActiveList(id,"%"+title+"%",pageable);
+        }else{
+            videoPage = videoDao.getActiveList(id,pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (Video video : videoPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(video));
+            VideoClass videoClass = videoClassDao.findAllById(video.getVodClass());
+            if (videoClass != null) {
+                json.put("class", videoClass.getName());
+            }
+            VideoPay pay = videoPayDao.findAllByVideoId(video.getId());
+            if (pay != null) {
+                json.put("price", pay.getAmount());
+            }else {
+                json.put("price",0);
+            }
+            json.put("like", videoLikeDao.countAllByVideoId(video.getId()));
+            json.put("play",videoPlayDao.countAllByVideoId(video.getId()));
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total", videoPage.getTotalElements());
+        object.put("list", array);
         return ResponseData.success(object);
     }
 }
