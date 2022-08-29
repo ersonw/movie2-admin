@@ -92,6 +92,7 @@ public class AVService {
             }
             json.put("like", videoLikeDao.countAllByVideoId(video.getId()));
             json.put("play",videoPlayDao.countAllByVideoId(video.getId()));
+            json.put("scale",videoPlayDao.getScale(video.getId()).longValue());
             array.add(json);
         }
         JSONObject object = ResponseData.object("total", videoPage.getTotalElements());
