@@ -54,6 +54,10 @@ public class AVService {
     private VideoPublicityReportDao videoPublicityReportDao;
     @Autowired
     private VideoScaleDao videoScaleDao;
+    @Autowired
+    private PublicizeReportDao publicizeReportDao;
+    @Autowired
+    private PublicizeDao publicizeDao;
 
     public boolean getConfigBool(String name){
         return getConfigLong(name) > 0;
@@ -398,7 +402,7 @@ public class AVService {
         concentration.setUpdateTime(System.currentTimeMillis());
         videoConcentrationDao.saveAndFlush(concentration);
         JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(concentration));
-        object.put("count", 0);
+        object.put("count", videoConcentrationListDao.countAllByConcentrationId(concentration.getId()));
         return ResponseData.success(ResponseData.object("result", object));
     }
 
@@ -507,5 +511,333 @@ public class AVService {
         JSONObject object = ResponseData.object("total", videoPage.getTotalElements());
         object.put("list", array);
         return ResponseData.success(object);
+    }
+
+    public ResponseData getVideoSource(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
+        Page<VideoProduced> producedPage;
+        if (StringUtils.isNotEmpty(title)){
+            producedPage = videoProducedDao.findAllByNameLike("%"+title+"%",pageable);
+        }else{
+            producedPage = videoProducedDao.findAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (VideoProduced produced : producedPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(produced));
+            json.put("count",videoProducedRecordDao.countAllByProducedId(produced.getId()));
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total", producedPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteVideoSource(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        for (Long id : ids) {
+            videoProducedDao.removeAllById(id);
+        }
+        return ResponseData.success();
+    }
+
+    public ResponseData addVideoSource(String name, int status, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (StringUtils.isEmpty(name)) return ResponseData.error("类名必传!");
+        name = name.replaceAll(" ", "");
+        name = name.toUpperCase();
+        name = name.trim();
+        List<VideoProduced> producedPage = videoProducedDao.findAllByName(name);
+        if (producedPage.size() > 0) return ResponseData.error("类名已存在");
+        VideoProduced produced = new VideoProduced(name,status);
+        videoProducedDao.saveAndFlush(produced);
+        JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(produced));
+        object.put("count", 0);
+        return ResponseData.success(ResponseData.object("result", object));
+    }
+
+    public ResponseData updateVideoSource(long id, String name, int status, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (StringUtils.isEmpty(name)) return ResponseData.error("类名不允许为空!");
+        if (id < 1) return ResponseData.error("记录不存在");
+        VideoProduced produced = videoProducedDao.findAllById(id);
+        if (produced == null) return ResponseData.error("记录不存在");
+        name = name.replaceAll(" ", "");
+        name = name.toUpperCase();
+        name = name.trim();
+        VideoConcentration c = videoConcentrationDao.findByName(name);
+        if(c != null && c.getId() != id) return ResponseData.error("类名已重复");
+        produced.setName(name);
+        produced.setStatus(status);
+        produced.setUpdateTime(System.currentTimeMillis());
+        videoProducedDao.saveAndFlush(produced);
+        JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(produced));
+        object.put("count", videoProducedRecordDao.countAllByProducedId(produced.getId()));
+        return ResponseData.success(ResponseData.object("result", object));
+    }
+
+    public ResponseData getVideoSourceList(long id, String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (id < 1) return ResponseData.error("记录不存在");
+        VideoProduced produced = videoProducedDao.findAllById(id);
+        if (produced == null) return ResponseData.error("记录不存在");
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"id"));
+        Page<VideoProducedRecord> recordPage;
+        if (StringUtils.isNotEmpty(title)){
+            recordPage = videoProducedRecordDao.getAllByTitle("%"+title+"%",id,pageable);
+        }else{
+            recordPage = videoProducedRecordDao.findAllByProducedId(id,pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (VideoProducedRecord record: recordPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(record));
+            Video video = videoDao.findAllById(record.getVideoId());
+            json.put("className",produced.getName());
+            json.put("title","已删除");
+            if (video != null){
+                json.put("title",video.getTitle());
+            }
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("list", array);
+        object.put("total", recordPage.getTotalElements());
+        return ResponseData.success(object);
+    }
+
+    public ResponseData getVideoSourceActiveList(long id, String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (id < 1) return ResponseData.error("记录不存在");
+        VideoProduced produced = videoProducedDao.findAllById(id);
+        if (produced == null) return ResponseData.error("记录不存在");
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"add_time"));
+        Page<Video> videoPage;
+        if (StringUtils.isNotEmpty(title)){
+            videoPage = videoDao.getVideoSourceActiveList("%"+title+"%",pageable);
+        }else{
+            videoPage = videoDao.getVideoSourceActiveList(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (Video video : videoPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(video));
+            VideoClass videoClass = videoClassDao.findAllById(video.getVodClass());
+            if (videoClass != null) {
+                json.put("class", videoClass.getName());
+            }
+            VideoPay pay = videoPayDao.findAllByVideoId(video.getId());
+            if (pay != null) {
+                json.put("price", pay.getAmount());
+            }else {
+                json.put("price",0);
+            }
+            json.put("like", videoLikeDao.countAllByVideoId(video.getId()));
+            json.put("play",videoPlayDao.countAllByVideoId(video.getId()));
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total", videoPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteVideoSourceList(List<Long> ids, long id, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if(id < 1) return ResponseData.error("分类不存在");
+        VideoProduced produced = videoProducedDao.findAllById(id);
+        if (produced == null) return ResponseData.error("记录不存在");
+        videoProducedRecordDao.deleteAllById(ids);
+        return ResponseData.success();
+    }
+
+    public ResponseData addVideoSourceList(List<Long> ids, long id, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if(id < 1) return ResponseData.error("分类不存在");
+        VideoProduced produced = videoProducedDao.findAllById(id);
+        if (produced == null) return ResponseData.error("记录不存在");
+        List<VideoProducedRecord> lists = new ArrayList<>();
+        for (long i: ids) {
+            Video video = videoDao.findAllById(i);
+            List<VideoConcentrationList> list = videoConcentrationListDao.findAllByConcentrationIdAndVideoId(id,i);
+            if (video != null && list.size() == 0){
+                lists.add(new VideoProducedRecord(id,i));
+            }
+        }
+        videoProducedRecordDao.saveAllAndFlush(lists);
+        JSONArray array = new JSONArray();
+        for (VideoProducedRecord record: lists) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(record));
+            Video video = videoDao.findAllById(record.getVideoId());
+            json.put("className",produced.getName());
+            json.put("title","已删除");
+            if (video != null){
+                json.put("title",video.getTitle());
+            }
+            array.add(json);
+        }
+        return ResponseData.success(ResponseData.object("list", array));
+    }
+
+    public ResponseData getIndexPublicity(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
+        Page<VideoPublicity> publicityPage;
+        if (StringUtils.isNotEmpty(title)){
+            publicityPage = videoPublicityDao.findAllByNameLike("%"+title+"%",pageable);
+        }else{
+            publicityPage = videoPublicityDao.findAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (VideoPublicity publicity : publicityPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(publicity));
+            json.put("count",videoPublicityReportDao.countAllByPublicityId(publicity.getId()));
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total", publicityPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteIndexPublicity(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        for (Long id : ids) {
+            videoPublicityDao.removeAllById(id);
+        }
+        return ResponseData.success();
+    }
+
+    public ResponseData addIndexPublicity(String name, String pic, String url, int type, int status, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if(StringUtils.isEmpty(pic)) return ResponseData.error("图片地址不可空");
+        if(StringUtils.isEmpty(url)) return ResponseData.error("跳转地址不可空");
+        VideoPublicity videoPublicity = new VideoPublicity();
+        name = name.replaceAll(" ","");
+        name = name.trim().toUpperCase();
+        pic = pic.trim();
+        url = url.trim();
+        videoPublicity.setAddTime(System.currentTimeMillis());
+        videoPublicity.setUrl(url);
+        videoPublicity.setType(type);
+        videoPublicity.setStatus(status);
+        videoPublicity.setPic(pic);
+        videoPublicity.setName(name);
+        videoPublicityDao.saveAndFlush(videoPublicity);
+        JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(videoPublicity));
+        object.put("count", 0);
+        return ResponseData.success(ResponseData.object("result", object));
+    }
+
+    public ResponseData updateIndexPublicity(long id, String name, String pic, String url, int type, int status, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (id < 1) return ResponseData.error("广告不存在");
+        if(StringUtils.isEmpty(pic)) return ResponseData.error("图片地址不可空");
+        if(StringUtils.isEmpty(url)) return ResponseData.error("跳转地址不可空");
+        VideoPublicity videoPublicity = videoPublicityDao.findAllById(id);
+        if (videoPublicity == null) return ResponseData.error("广告不存在");
+        name = name.replaceAll(" ","");
+        name = name.trim().toUpperCase();
+        pic = pic.trim();
+        url = url.trim();
+        videoPublicity.setUrl(url);
+        videoPublicity.setType(type);
+        videoPublicity.setStatus(status);
+        videoPublicity.setPic(pic);
+        videoPublicity.setName(name);
+        List<VideoPublicity> publicitys = videoPublicityDao.findAllByName(name);
+        if (publicitys.size() > 0 && publicitys.get(0).getId() != id) return ResponseData.error("名称已存在");
+        videoPublicityDao.saveAndFlush(videoPublicity);
+        JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(videoPublicity));
+        object.put("count", videoPublicityReportDao.countAllByPublicityId(id));
+        return ResponseData.success(ResponseData.object("result", object));
+    }
+
+    public ResponseData getPlayPublicity(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
+        Page<Publicize> publicizePage;
+        if (StringUtils.isNotEmpty(title)){
+            publicizePage = publicizeDao.findAllByNameLike("%"+title+"%",pageable);
+        }else{
+            publicizePage = publicizeDao.findAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (Publicize publicize : publicizePage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(publicize));
+            json.put("count",publicizeReportDao.countAllByPublicityId(publicize.getId()));
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total", publicizePage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deletePlayPublicity(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        for (Long id : ids) {
+            publicizeDao.removeAllById(id);
+        }
+        return ResponseData.success();
+    }
+
+    public ResponseData addPlayPublicity(String name, String image, String url, int type, int page, int status, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if(StringUtils.isEmpty(image)) return ResponseData.error("图片地址不可空");
+        if(StringUtils.isEmpty(url)) return ResponseData.error("跳转地址不可空");
+        Publicize publicize = new Publicize();
+        name = name.replaceAll(" ","");
+        name = name.trim().toUpperCase();
+        image = image.trim();
+        url = url.trim();
+        publicize.setAddTime(System.currentTimeMillis());
+        publicize.setUpdateTime(System.currentTimeMillis());
+        publicize.setUrl(url);
+        publicize.setType(type);
+        publicize.setStatus(status);
+        publicize.setPage(page);
+        publicize.setImage(image);
+        publicize.setName(name);
+        publicizeDao.saveAndFlush(publicize);
+        JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(publicize));
+        object.put("count", 0);
+        return ResponseData.success(ResponseData.object("result", object));
+    }
+
+    public ResponseData updatePlayPublicity(long id, String name, String image, String url, int type, int page, int status, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if(StringUtils.isEmpty(image)) return ResponseData.error("图片地址不可空");
+        if(StringUtils.isEmpty(url)) return ResponseData.error("跳转地址不可空");
+        if (id < 1) return ResponseData.error("广告不存在");
+        Publicize publicize = publicizeDao.findAllById(id);
+        if (publicize == null) return ResponseData.error("广告不存在");
+        name = name.replaceAll(" ","");
+        name = name.trim().toUpperCase();
+        image = image.trim();
+        url = url.trim();
+        publicize.setAddTime(System.currentTimeMillis());
+        publicize.setUpdateTime(System.currentTimeMillis());
+        publicize.setUrl(url);
+        publicize.setType(type);
+        publicize.setStatus(status);
+        publicize.setPage(page);
+        publicize.setImage(image);
+        publicize.setName(name);
+        List<Publicize> publicizes = publicizeDao.findAllByName(name);
+        if (publicizes.size() > 0 && publicizes.get(0).getId() != id) return ResponseData.error("名称已存在");
+        publicizeDao.saveAndFlush(publicize);
+        JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(publicize));
+        object.put("count", videoPublicityReportDao.countAllByPublicityId(id));
+        return ResponseData.success(ResponseData.object("result", object));
     }
 }

@@ -13,6 +13,13 @@ import javax.persistence.*;
 @Cacheable
 @ToString(includeFieldNames = true)
 public class VideoProducedRecord {
+    public VideoProducedRecord() {}
+    public VideoProducedRecord(long producedId, long videoId) {
+        this.producedId = producedId;
+        this.videoId = videoId;
+        this.addTime = System.currentTimeMillis();
+        this.updateTime = System.currentTimeMillis();
+    }
     @Id
     @GeneratedValue
     private long id;

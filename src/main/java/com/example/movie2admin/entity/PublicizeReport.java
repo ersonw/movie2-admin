@@ -9,22 +9,22 @@ import javax.persistence.*;
 @Setter
 @Getter
 @Entity
-@Table(name = "video_produced")
+@Table(name = "publicize_report")
 @Cacheable
 @ToString(includeFieldNames = true)
-public class VideoProduced {
-    public VideoProduced() {}
-    public VideoProduced(String name, int status) {
-        this.name = name;
-        this.status = status;
+public class PublicizeReport {
+    public PublicizeReport() {}
+    public PublicizeReport(long publicityId, long userId, String ip) {
+        this.publicityId = publicityId;
+        this.userId = userId;
+        this.ip = ip;
         this.addTime = System.currentTimeMillis();
-        this.updateTime = System.currentTimeMillis();
     }
     @Id
     @GeneratedValue
     private long id;
-    private String name;
-    private int status;
+    private long publicityId;
+    private long userId;
+    private String ip;
     private long addTime;
-    private long updateTime;
 }

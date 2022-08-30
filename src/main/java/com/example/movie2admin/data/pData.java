@@ -39,10 +39,22 @@ public  class pData  {
     @ApiModelProperty(name = "duration", value= "目标ID",required = false)
     private long duration;
 
+    @ApiModelProperty(name = "type", value= "类型",required = false)
+    private int type;
+    @ApiModelProperty(name = "page", value= "页面",required = false)
+    private int page;
+    @ApiModelProperty(name = "status", value= "状态",required = false)
+    private int status;
     @ApiModelProperty(name = "trial", value= "试用",required = false)
     private long trial;
     @ApiModelProperty(name = "text", value= "字符串",required = false)
     private String text;
+    @ApiModelProperty(name = "pic", value= "图片",required = false)
+    private String pic;
+    @ApiModelProperty(name = "image", value= "图片",required = false)
+    private String image;
+    @ApiModelProperty(name = "url1", value= "网址链接",required = false)
+    private String url1;
     @ApiModelProperty(name = "name", value= "名称",required = false)
     private String name;
     @ApiModelProperty(name = "bank", value= "银行",required = false)

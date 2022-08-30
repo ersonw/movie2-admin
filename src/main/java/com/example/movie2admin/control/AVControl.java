@@ -168,4 +168,106 @@ public class AVControl {
     public ResponseData addConcentrationList(@RequestBody pData data){
         return service.addConcentrationList(data.getIds(),data.getId(),data.getUser(), data.getIp());
     }
+    @GetMapping("/getVideoSource")
+    public ResponseData getVideoSource(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getVideoSource(title,page,limit,SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteVideoSource")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteVideoSource(@RequestBody pData data){
+        return service.deleteVideoSource(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addVideoSource")
+    @ApiGlobalModel(component = pData.class, value = "name,status")
+    public ResponseData addVideoSource(@RequestBody pData data){
+        return service.addVideoSource(data.getName(), data.getStatus(), data.getUser(), data.getIp());
+    }
+    @PostMapping("/updateVideoSource")
+    @ApiGlobalModel(component = pData.class, value = "name,status,id")
+    public ResponseData updateVideoSource(@RequestBody pData data){
+        return service.updateVideoSource(data.getId(),data.getName(),data.getStatus(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getVideoSourceList/{id}")
+    public ResponseData getVideoSourceList(
+            @PathVariable long id,
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getVideoSourceList(id,title,page,limit,SysUser.getUser(user), ip);
+    }
+    @GetMapping("/getVideoSourceActiveList/{id}")
+    public ResponseData getVideoSourceActiveList(
+            @PathVariable long id,
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getVideoSourceActiveList(id,title,page,limit,SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteVideoSourceList")
+    @ApiGlobalModel(component = pData.class, value = "ids,id")
+    public ResponseData deleteVideoSourceList(@RequestBody pData data){
+        return service.deleteVideoSourceList(data.getIds(),data.getId(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addVideoSourceList")
+    @ApiGlobalModel(component = pData.class, value = "ids,id")
+    public ResponseData addVideoSourceList(@RequestBody pData data){
+        return service.addVideoSourceList(data.getIds(),data.getId(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getIndexPublicity")
+    public ResponseData getIndexPublicity(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getIndexPublicity(title,page,limit,SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteIndexPublicity")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteIndexPublicity(@RequestBody pData data){
+        return service.deleteIndexPublicity(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addIndexPublicity")
+    @ApiGlobalModel(component = pData.class, value = "name,pic,url1,type,status")
+    public ResponseData addIndexPublicity(@RequestBody pData data){
+        return service.addIndexPublicity(data.getName(),data.getPic(),data.getUrl1(),data.getType(), data.getStatus(), data.getUser(), data.getIp());
+    }
+    @PostMapping("/updateIndexPublicity")
+    @ApiGlobalModel(component = pData.class, value = "name,pic,url1,type,status,id")
+    public ResponseData updateIndexPublicity(@RequestBody pData data){
+        return service.updateIndexPublicity(data.getId(),data.getName(),data.getPic(),data.getUrl1(),data.getType(),data.getStatus(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getPlayPublicity")
+    public ResponseData getPlayPublicity(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getPlayPublicity(title,page,limit,SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deletePlayPublicity")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deletePlayPublicity(@RequestBody pData data){
+        return service.deletePlayPublicity(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addPlayPublicity")
+    @ApiGlobalModel(component = pData.class, value = "name,image,url1,type,page,status")
+    public ResponseData addPlayPublicity(@RequestBody pData data){
+        return service.addPlayPublicity(data.getName(),data.getImage(),data.getUrl1(),data.getType(),data.getPage(), data.getStatus(), data.getUser(), data.getIp());
+    }
+    @PostMapping("/updatePlayPublicity")
+    @ApiGlobalModel(component = pData.class, value = "name,pic,url1,type,status,id")
+    public ResponseData updatePlayPublicity(@RequestBody pData data){
+        return service.updatePlayPublicity(data.getId(),data.getName(),data.getImage(),data.getUrl1(),data.getType(),data.getPage(),data.getStatus(),data.getUser(), data.getIp());
+    }
 }
