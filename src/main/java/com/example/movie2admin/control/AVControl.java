@@ -1,5 +1,6 @@
 package com.example.movie2admin.control;
 
+import com.alibaba.fastjson.JSONObject;
 import com.example.movie2admin.data.ResponseData;
 import com.example.movie2admin.data.pData;
 import com.example.movie2admin.entity.SysUser;
@@ -269,5 +270,25 @@ public class AVControl {
     @ApiGlobalModel(component = pData.class, value = "name,pic,url1,type,status,id")
     public ResponseData updatePlayPublicity(@RequestBody pData data){
         return service.updatePlayPublicity(data.getId(),data.getName(),data.getImage(),data.getUrl1(),data.getType(),data.getPage(),data.getStatus(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getVideoConfig")
+    public ResponseData getVideoConfig(
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getVideoConfig(SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteVideoConfig")
+    @ApiGlobalModel(component = pData.class, value = "name")
+    public ResponseData deleteVideoConfig(@RequestBody pData data){
+        return service.deleteVideoConfig(data.getName(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addVideoConfig")
+    @ApiGlobalModel(component = pData.class, value = "name,value")
+    public ResponseData addVideoConfig(@RequestBody pData data){
+        return service.addVideoConfig(data.getName(),data.getValue(), data.getUser(), data.getIp());
+    }
+    @PostMapping("/updateVideoConfig")
+    public ResponseData updateVideoConfig(@RequestBody JSONObject data){
+        return service.updateVideoConfig(data);
     }
 }

@@ -840,4 +840,73 @@ public class AVService {
         object.put("count", videoPublicityReportDao.countAllByPublicityId(id));
         return ResponseData.success(ResponseData.object("result", object));
     }
+
+    public ResponseData getVideoConfig(SysUser user, String ip) {
+        if (user == null) return ResponseData.error("");
+        List<VideoPpvod> configs = videoPpvodDao.findAll();
+        JSONObject object = new JSONObject();
+        for (VideoPpvod config: configs) {
+            object.put(config.getName(), config.getVal());
+        }
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteVideoConfig(String name, SysUser user, String ip) {
+        if (user == null) return ResponseData.error("");
+        if (StringUtils.isEmpty(name)) return ResponseData.error("必须填写需要删除的值");
+        List<VideoPpvod> configs = videoPpvodDao.findAllByName(name);
+        for (VideoPpvod config: configs) {
+            videoPpvodDao.deleteById(config.getId());
+        }
+        return ResponseData.success();
+    }
+
+    public ResponseData addVideoConfig(String name, String value, SysUser user, String ip) {
+        if (user == null) return ResponseData.error("");
+        if (StringUtils.isEmpty(name)) return ResponseData.error("");
+        if (StringUtils.isEmpty(value)) return ResponseData.error("必须填写值");
+        name = name.replaceAll(" ","").trim();
+        value = value.replaceAll(" ","").trim();
+        List<VideoPpvod> configs = videoPpvodDao.findAllByName(name);
+        if (configs.size() > 0) return ResponseData.error("配置已存在");
+        videoPpvodDao.saveAndFlush(new VideoPpvod(name,value));
+        return ResponseData.success();
+    }
+    public List<VideoPpvod> getUpdateConfig(JSONObject data){
+        List<VideoPpvod> configs = new ArrayList<>();
+        JSONObject object = new JSONObject();
+        for (String key : data.keySet()) {
+            if (
+                    data.get(key) != null && !key.equals("ip") &&
+                    data.get(key) != null && !key.equals("isWeb") &&
+                    data.get(key) != null && !key.equals("serverName") &&
+                    data.get(key) != null && !key.equals("serverPort") &&
+                    data.get(key) != null && !key.equals("uri") &&
+                    data.get(key) != null && !key.equals("url") &&
+                    data.get(key) != null && !key.equals("schema") &&
+                    data.get(key) != null && !key.equals("user")
+            ){
+                object.put(key, data.get(key));
+            }
+        }
+        for (String key : object.keySet()) {
+            VideoPpvod config = videoPpvodDao.findByName(key);
+            if (config == null){
+                config = new VideoPpvod(key, object.getString(key));
+            }else{
+                config.setVal(object.getString(key));
+                config.setUpdateTime(System.currentTimeMillis());
+            }
+            configs.add(config);
+        }
+        return configs;
+    }
+    public ResponseData updateVideoConfig(JSONObject data) {
+        String u = data.getString("user");
+        if (StringUtils.isEmpty(u)) return ResponseData.error("");
+        SysUser user = SysUser.getUser(u);
+        if (user == null) return ResponseData.error("");
+        videoPpvodDao.saveAllAndFlush(getUpdateConfig(data));
+        return ResponseData.success();
+    }
 }

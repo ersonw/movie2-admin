@@ -12,4 +12,5 @@ import java.util.List;
 @Repository
 public interface VideoPpvodDao extends JpaRepository<VideoPpvod, Long>, CrudRepository<VideoPpvod, Long> {
     List<VideoPpvod> findAllByName(String name);
+    VideoPpvod findByName(String name);
 }

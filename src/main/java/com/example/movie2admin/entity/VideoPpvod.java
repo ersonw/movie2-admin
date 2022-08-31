@@ -13,6 +13,13 @@ import javax.persistence.*;
 @Cacheable
 @ToString(includeFieldNames = true)
 public class VideoPpvod {
+    public VideoPpvod() {}
+    public VideoPpvod(String name, String value) {
+        this.name = name;
+        this.val = value;
+        this.addTime = System.currentTimeMillis();
+        this.updateTime = System.currentTimeMillis();
+    }
     @Id
     @GeneratedValue
     private long id;

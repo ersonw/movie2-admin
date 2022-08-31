@@ -57,6 +57,8 @@ public  class pData  {
     private String url1;
     @ApiModelProperty(name = "name", value= "名称",required = false)
     private String name;
+    @ApiModelProperty(name = "value", value= "值",required = false)
+    private String value;
     @ApiModelProperty(name = "bank", value= "银行",required = false)
     private String bank;
     @ApiModelProperty(name = "card", value= "卡号",required = false)
