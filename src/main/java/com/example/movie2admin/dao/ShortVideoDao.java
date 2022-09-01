@@ -4,6 +4,7 @@ import com.example.movie2admin.entity.ShortVideo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -45,4 +46,20 @@ public interface ShortVideoDao extends JpaRepository<ShortVideo, Long>, CrudRepo
     Page<ShortVideo> getAllByForward(long userId, Pageable pageable);
     @Query(value = "SELECT sv.* FROM `short_video` as `sv` WHERE (select count(*) from `short_video_play` where video_id = sv.id) = 0 and sv.user_id =:userId and sv.status = 1",nativeQuery = true)
     Page<ShortVideo> getAllByUser(long userId, Pageable pageable);
+    @Modifying
+    @Query(value = "DELETE vc.*,svct.*,svc.*,svcr.*,svd.*,svf.*,svl.*,svp.*,svs.*,svsh.*,svcl.*\n" +
+            "FROM short_video as vc \n" +
+            "LEFT JOIN short_video_collect as svct ON svct.video_id=vc.id \n" +
+            "LEFT JOIN short_video_comment as svc ON svc.video_id=vc.id \n" +
+            "LEFT JOIN short_video_comment_like as svcl ON svcl.comment_id=svc.id \n" +
+            "LEFT JOIN short_video_comment_report as svcr ON svcl.comment_id=svc.id \n" +
+            "LEFT JOIN short_video_download as svd ON svd.video_id=vc.id \n" +
+            "LEFT JOIN short_video_forward as svf ON svf.video_id=vc.id OR svf.correct_video_id=vc.id \n" +
+            "LEFT JOIN short_video_like as svl ON svl.video_id=vc.id \n" +
+            "LEFT JOIN short_video_play as svp ON svp.video_id=vc.id \n" +
+            "LEFT JOIN short_video_scale as svs ON svs.video_id=vc.id \n" +
+            "LEFT JOIN short_video_share as svsh ON svsh.video_id=vc.id \n" +
+            "WHERE vc.id=:id", nativeQuery = true)
+    void removeAllById(long id);
+    Page<ShortVideo> findAllByTitleLike(String title, Pageable pageable);
 }

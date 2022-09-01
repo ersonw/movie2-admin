@@ -74,4 +74,6 @@ public interface ShortVideoCommentDao extends JpaRepository<ShortVideoComment, L
             ")",nativeQuery = true)
     @Modifying
     void deleteAllByReport(long id);
+
+    Object countAllByVideoId(long id);
 }

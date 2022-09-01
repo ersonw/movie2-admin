@@ -4,6 +4,7 @@ import com.example.movie2admin.entity.Video;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -73,4 +74,18 @@ public interface VideoDao extends JpaRepository<Video, Long>, CrudRepository<Vid
     Page<Video> getVideoSourceActiveList(String title, Pageable pageable);
     @Query(value = "SELECT * FROM video WHERE id NOT IN (    SELECT video_id FROM video_produced_record as vcl INNER JOIN video AS v on v.id=vcl.video_id AND v.status =1 WHERE 1)", nativeQuery = true)
     Page<Video> getVideoSourceActiveList( Pageable pageable);
+    @Modifying
+    @Query(value = "DELETE vc.*,svct.*,svc.*,svcr.*,svd.*,svf.*,svl.*,svp.*,svs.*,svcl.*\n" +
+            "FROM video as vc \n" +
+            "LEFT JOIN video_comment as svct ON svct.video_id=vc.id \n" +
+            "LEFT JOIN video_comment_like as svc ON svc.comment_id=svct.id \n" +
+            "LEFT JOIN video_concentration_list as svcl ON svcl.video_id=vc.id \n" +
+            "LEFT JOIN video_like as svcr ON svcl.video_id=vc.id \n" +
+            "LEFT JOIN video_pay as svd ON svd.video_id=vc.id \n" +
+            "LEFT JOIN video_pay_record as svf ON svf.pay_id=svd.id\n" +
+            "LEFT JOIN video_play as svl ON svl.video_id=vc.id \n" +
+            "LEFT JOIN video_produced_record as svp ON svp.video_id=vc.id \n" +
+            "LEFT JOIN video_scale as svs ON svs.video_id=vc.id \n" +
+            "WHERE vc.id=:id", nativeQuery = true)
+    void removeAllById(long id);
 }

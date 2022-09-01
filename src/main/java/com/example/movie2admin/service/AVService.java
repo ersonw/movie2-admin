@@ -155,6 +155,9 @@ public class AVService {
     public ResponseData deleteTrash(List<Long> ids, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
 //        videoDao.deleteAllById(ids);
+        for (long id : ids) {
+            videoDao.removeAllById(id);
+        }
         return ResponseData.success();
     }
 

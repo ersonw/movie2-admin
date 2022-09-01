@@ -41,6 +41,10 @@ public  class pData  {
 
     @ApiModelProperty(name = "type", value= "类型",required = false)
     private int type;
+    @ApiModelProperty(name = "forward", value= "转发",required = false)
+    private int forward;
+    @ApiModelProperty(name = "pin", value= "置顶",required = false)
+    private int pin;
     @ApiModelProperty(name = "page", value= "页面",required = false)
     private int page;
     @ApiModelProperty(name = "status", value= "状态",required = false)
