@@ -19,8 +19,8 @@ public class MembershipOrder {
     private String orderNo;
     private long userId;
     private long amount;
-    private long buttonId;
-    private int status;
+    private long price;
+    private long gameCoin;
+    private long experience;
     private long addTime;
-    private long updateTime;
 }

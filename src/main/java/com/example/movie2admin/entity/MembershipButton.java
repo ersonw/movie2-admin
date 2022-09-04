@@ -18,8 +18,12 @@ public class MembershipButton {
     private long id;
     private String name;
     private long amount;
-    private double less;
+    private long price;
+    private long original;
+    private long gameCoin;
     private long experience;
+    private long cashInId;
+    private int status;
     private long addTime;
     private long updateTime;
 }

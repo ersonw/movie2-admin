@@ -62,4 +62,12 @@ public interface ShortVideoDao extends JpaRepository<ShortVideo, Long>, CrudRepo
             "WHERE vc.id=:id", nativeQuery = true)
     void removeAllById(long id);
     Page<ShortVideo> findAllByTitleLike(String title, Pageable pageable);
+    @Query(value = "SELECT * FROM `short_video` WHERE user_id =:id AND title LIKE :title",nativeQuery = true)
+    Page<ShortVideo> getAllByUserVideos(long id,String title, Pageable pageable);
+    @Query(value = "SELECT * FROM `short_video` WHERE user_id =:id",nativeQuery = true)
+    Page<ShortVideo> getAllByUserVideos(long id, Pageable pageable);
+
+    Page<ShortVideo> findAllByStatus(int status, Pageable pageable);
+    @Query(value = "SELECT * FROM `short_video` WHERE status = 0 ORDER BY RAND() LIMIT 1",nativeQuery = true)
+    ShortVideo getAuditVideo();
 }

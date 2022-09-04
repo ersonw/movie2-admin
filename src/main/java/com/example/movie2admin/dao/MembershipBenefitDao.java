@@ -9,4 +9,5 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Repository
 public interface MembershipBenefitDao extends JpaRepository<MembershipBenefit, Long>, CrudRepository<MembershipBenefit, Long> {
+    MembershipBenefit findAllById(Long id);
 }
