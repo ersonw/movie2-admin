@@ -1,6 +1,7 @@
 package com.example.movie2admin.dao;
 
 import com.example.movie2admin.entity.ShortVideoPpvod;
+import com.example.movie2admin.entity.VideoPpvod;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -13,4 +14,6 @@ import java.util.List;
 public interface ShortVideoPpvodDao extends JpaRepository<ShortVideoPpvod, Long>, CrudRepository<ShortVideoPpvod, Long> {
     List<ShortVideoPpvod> findAllByName(String name);
     ShortVideoPpvod findAllById(long id);
+
+    ShortVideoPpvod findByName(String key);
 }

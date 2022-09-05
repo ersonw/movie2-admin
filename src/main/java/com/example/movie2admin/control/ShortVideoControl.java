@@ -1,5 +1,6 @@
 package com.example.movie2admin.control;
 
+import com.alibaba.fastjson.JSONObject;
 import com.example.movie2admin.data.ResponseData;
 import com.example.movie2admin.data.pData;
 import com.example.movie2admin.entity.SysUser;
@@ -133,5 +134,39 @@ public class ShortVideoControl {
     @ApiGlobalModel(component = pData.class, value = "ids")
     public ResponseData passAuditComment(@RequestBody pData data){
         return service.passAuditComment(data.getIds(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getShareVideo")
+    public ResponseData getShareVideo(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getShareVideo(title,page,limit, SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteShareVideo")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteShareVideo(@RequestBody pData data){
+        return service.deleteShareVideo(data.getIds(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getVideoConfig")
+    public ResponseData getVideoConfig(
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getVideoConfig(SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteVideoConfig")
+    @ApiGlobalModel(component = pData.class, value = "name")
+    public ResponseData deleteVideoConfig(@RequestBody pData data){
+        return service.deleteVideoConfig(data.getName(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addVideoConfig")
+    @ApiGlobalModel(component = pData.class, value = "name,value")
+    public ResponseData addVideoConfig(@RequestBody pData data){
+        return service.addVideoConfig(data.getName(),data.getValue(), data.getUser(), data.getIp());
+    }
+    @PostMapping("/updateVideoConfig")
+    public ResponseData updateVideoConfig(@RequestBody JSONObject data){
+        return service.updateVideoConfig(data);
     }
 }

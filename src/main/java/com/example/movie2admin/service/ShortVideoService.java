@@ -23,6 +23,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -577,5 +578,121 @@ public class ShortVideoService {
             array.add(json);
         }
         return ResponseData.success(array);
+    }
+
+    public ResponseData getShareVideo(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"add_time"));
+        Page<ShortVideoShare> sharePage;
+        if (StringUtils.isNotEmpty(title)) {
+            sharePage = shortVideoShareDao.getShareVideo("%"+title+"%",pageable);
+        }else {
+            sharePage = shortVideoShareDao.getShareVideo(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (ShortVideoShare share : sharePage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(share));
+            ShortVideo video = shortVideoDao.findAllById(share.getVideoId());
+            json.put("title","视频不存在!");
+            if (video != null){
+                json.put("title",video.getTitle());
+                ShortVideoFile file = new ShortVideoFile(video.getFile());
+                String url = getOssUrl(file.getFilePath(), OssConfig.getOssConfig(file.getOssConfig()));
+                if (url == null) return null;
+                json.put("playUrl",url);
+            }
+            json.put("nickname","用户不存在!");
+            json.put("user","用户不存在");
+            User u = userDao.findAllById(share.getUserId());
+            if (u!= null) {
+                json.put("user",u.getNickname());
+            }
+            u = userDao.findAllById(share.getUserId());
+            if (u!= null) {
+                json.put("nickname",u.getNickname());
+            }
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total", sharePage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteShareVideo(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        shortVideoShareDao.deleteAllById(ids);
+        return ResponseData.success();
+    }
+
+    public ResponseData getVideoConfig(SysUser user, String ip) {
+        if (user == null) return ResponseData.error("");
+        List<ShortVideoPpvod> configs = shortVideoPpvodDao.findAll();
+        JSONObject object = new JSONObject();
+        for (ShortVideoPpvod config: configs) {
+            object.put(config.getName(), config.getVal());
+        }
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteVideoConfig(String name, SysUser user, String ip) {
+        if (user == null) return ResponseData.error("");
+        if (StringUtils.isEmpty(name)) return ResponseData.error("必须填写需要删除的值");
+        List<ShortVideoPpvod> configs = shortVideoPpvodDao.findAllByName(name);
+        for (ShortVideoPpvod config: configs) {
+            shortVideoPpvodDao.deleteById(config.getId());
+        }
+        return ResponseData.success();
+    }
+
+    public ResponseData addVideoConfig(String name, String value, SysUser user, String ip) {
+        if (user == null) return ResponseData.error("");
+        if (StringUtils.isEmpty(name)) return ResponseData.error("");
+        if (StringUtils.isEmpty(value)) return ResponseData.error("必须填写值");
+        name = name.replaceAll(" ","").trim();
+        value = value.replaceAll(" ","").trim();
+        List<ShortVideoPpvod> configs = shortVideoPpvodDao.findAllByName(name);
+        if (configs.size() > 0) return ResponseData.error("配置已存在");
+        shortVideoPpvodDao.saveAndFlush(new ShortVideoPpvod(name,value));
+        return ResponseData.success();
+    }
+    public List<ShortVideoPpvod> getUpdateConfig(JSONObject data){
+        List<ShortVideoPpvod> configs = new ArrayList<>();
+        JSONObject object = new JSONObject();
+        for (String key : data.keySet()) {
+            if (
+                    data.get(key) != null && !key.equals("ip") &&
+                            data.get(key) != null && !key.equals("isWeb") &&
+                            data.get(key) != null && !key.equals("serverName") &&
+                            data.get(key) != null && !key.equals("serverPort") &&
+                            data.get(key) != null && !key.equals("uri") &&
+                            data.get(key) != null && !key.equals("url") &&
+                            data.get(key) != null && !key.equals("schema") &&
+                            data.get(key) != null && !key.equals("user")
+            ){
+                object.put(key, data.get(key));
+            }
+        }
+        for (String key : object.keySet()) {
+            ShortVideoPpvod config = shortVideoPpvodDao.findByName(key);
+            if (config == null){
+                config = new ShortVideoPpvod(key, object.getString(key));
+            }else{
+                config.setVal(object.getString(key));
+                config.setUpdateTime(System.currentTimeMillis());
+            }
+            configs.add(config);
+        }
+        return configs;
+    }
+    public ResponseData updateVideoConfig(JSONObject data) {
+        String u = data.getString("user");
+        if (StringUtils.isEmpty(u)) return ResponseData.error("");
+        SysUser user = SysUser.getUser(u);
+        if (user == null) return ResponseData.error("");
+        shortVideoPpvodDao.saveAllAndFlush(getUpdateConfig(data));
+        return ResponseData.success();
     }
 }
