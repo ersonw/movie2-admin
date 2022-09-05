@@ -76,4 +76,62 @@ public class ShortVideoControl {
     public ResponseData denyAuditVideo(@RequestBody pData data){
         return service.denyAuditVideo(data.getId(),data.getUser(), data.getIp());
     }
+    @GetMapping("/getAuditCommentList")
+    public ResponseData getAuditCommentList(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getAuditCommentList(title,page,limit, SysUser.getUser(user), ip);
+    }
+    @GetMapping("/getAuditCommentListChild/{id}")
+    public ResponseData getAuditCommentListChild(
+            @PathVariable("id") long id,
+            @RequestParam(value = "title", defaultValue = "",required = false) String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getAuditCommentListChild(id,title,page,limit, SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteAuditComments")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteAuditComments(@RequestBody pData data){
+        return service.deleteAuditComments(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/denyAuditComments")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData denyAuditComments(@RequestBody pData data){
+        return service.denyAuditComments(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/passAuditComments")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData passAuditComments(@RequestBody pData data){
+        return service.passAuditComments(data.getIds(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getAuditComment")
+    public ResponseData getAuditComment(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getAuditComment(title,page,limit, SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteAuditComment")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteAuditComment(@RequestBody pData data){
+        return service.deleteAuditComment(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/denyAuditComment")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData denyAuditComment(@RequestBody pData data){
+        return service.denyAuditComment(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/passAuditComment")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData passAuditComment(@RequestBody pData data){
+        return service.passAuditComment(data.getIds(),data.getUser(), data.getIp());
+    }
 }

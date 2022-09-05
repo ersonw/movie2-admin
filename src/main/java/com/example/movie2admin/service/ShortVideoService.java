@@ -270,4 +270,312 @@ public class ShortVideoService {
         shortVideoDao.saveAndFlush(video);
         return ResponseData.success();
     }
+
+    public ResponseData getAuditCommentList(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit);
+        Page<ShortVideoComment> commentPage;
+        if (StringUtils.isNotEmpty(title)) {
+            commentPage = shortVideoCommentDao.getAllByComments("%"+title+"%",pageable);
+        }else {
+            commentPage = shortVideoCommentDao.getAllByComments(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (ShortVideoComment comment : commentPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(comment));
+            ShortVideo video = shortVideoDao.findAllById(comment.getVideoId());
+            User u = userDao.findAllById(comment.getUserId());
+            json.put("title","视频不存在!");
+            json.put("nickname","用户不存在!");
+            if (video != null){
+                json.put("title",video.getTitle());
+                ShortVideoFile file = new ShortVideoFile(video.getFile());
+                String url = getOssUrl(file.getFilePath(), OssConfig.getOssConfig(file.getOssConfig()));
+                if (url == null) return null;
+                json.put("playUrl",url);
+            }
+            if (u!= null){
+                json.put("nickname",u.getNickname());
+            }
+            json.put("likes", shortVideoCommentLikeDao.countAllByCommentId(comment.getId()));
+            json.put("comments", shortVideoCommentDao.countAllByComments(comment.getId()));
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total", commentPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteAuditComments(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        for (long id: ids) {
+            shortVideoCommentDao.deleteAllByComments(id);
+        }
+        return ResponseData.success();
+    }
+
+    public ResponseData denyAuditComments(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<ShortVideoComment> comments = shortVideoCommentDao.findAllById(ids);
+        JSONArray array = new JSONArray();
+        for (int i = 0; i < comments.size(); i++) {
+            comments.get(i).setStatus(-1);
+        }
+        shortVideoCommentDao.saveAllAndFlush(comments);
+        for (ShortVideoComment comment : comments) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(comment));
+            ShortVideo video = shortVideoDao.findAllById(comment.getVideoId());
+            User u = userDao.findAllById(comment.getUserId());
+            json.put("title","视频不存在!");
+            json.put("nickname","用户不存在!");
+            if (video != null){
+                json.put("title",video.getTitle());
+            }
+            if (u!= null){
+                json.put("nickname",u.getNickname());
+            }
+            json.put("likes", shortVideoCommentLikeDao.countAllByCommentId(comment.getId()));
+            json.put("comments", shortVideoCommentDao.countAllByComments(comment.getId()));
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData passAuditComments(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<ShortVideoComment> comments = shortVideoCommentDao.findAllById(ids);
+        JSONArray array = new JSONArray();
+        for (int i = 0; i < comments.size(); i++) {
+            comments.get(i).setStatus(1);
+        }
+        shortVideoCommentDao.saveAllAndFlush(comments);
+        for (ShortVideoComment comment : comments) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(comment));
+            ShortVideo video = shortVideoDao.findAllById(comment.getVideoId());
+            User u = userDao.findAllById(comment.getUserId());
+            json.put("title","视频不存在!");
+            json.put("nickname","用户不存在!");
+            if (video != null){
+                json.put("title",video.getTitle());
+            }
+            if (u!= null){
+                json.put("nickname",u.getNickname());
+            }
+            json.put("likes", shortVideoCommentLikeDao.countAllByCommentId(comment.getId()));
+            json.put("comments", shortVideoCommentDao.countAllByComments(comment.getId()));
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData getAuditCommentListChild(long id, String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (id < 1) {
+            return ResponseData.error("");
+        }else{
+            ShortVideoComment comment = shortVideoCommentDao.findAllById(id);
+            if (comment == null) return ResponseData.error("评论不存在");
+        }
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit);
+        Page<ShortVideoComment> commentPage;
+        if (StringUtils.isNotEmpty(title)) {
+            commentPage = shortVideoCommentDao.getAllByComments(id,"%"+title+"%",pageable);
+        }else {
+            commentPage = shortVideoCommentDao.getAllByComments(id,pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (ShortVideoComment comment : commentPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(comment));
+            ShortVideo video = shortVideoDao.findAllById(comment.getVideoId());
+            User u = userDao.findAllById(comment.getUserId());
+            json.put("title","视频不存在!");
+            json.put("nickname","用户不存在!");
+            if (video != null){
+                json.put("title",video.getTitle());
+                ShortVideoFile file = new ShortVideoFile(video.getFile());
+                String url = getOssUrl(file.getFilePath(), OssConfig.getOssConfig(file.getOssConfig()));
+                if (url == null) return null;
+                json.put("playUrl",url);
+            }
+            if (u!= null){
+                json.put("nickname",u.getNickname());
+            }
+            json.put("likes", shortVideoCommentLikeDao.countAllByCommentId(comment.getId()));
+            json.put("comments", shortVideoCommentDao.countAllByComments(comment.getId()));
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total", commentPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData getAuditComment(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit);
+        Page<ShortVideoCommentReport> commentPage;
+        if (StringUtils.isNotEmpty(title)) {
+            commentPage = shortVideoCommentReportDao.getAllByAudit("%"+title+"%",pageable);
+        }else {
+            commentPage = shortVideoCommentReportDao.getAllByAudit(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (ShortVideoCommentReport report : commentPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(report));
+            ShortVideoComment comment = shortVideoCommentDao.findAllById(report.getCommentId());
+            if (comment!= null) {
+                json.put("text", comment.getText());
+                json.put("addTime", comment.getAddTime());
+                json.put("ip", comment.getIp());
+                ShortVideo video = shortVideoDao.findAllById(comment.getVideoId());
+                User u = userDao.findAllById(comment.getUserId());
+                json.put("title","视频不存在!");
+                json.put("nickname","用户不存在!");
+                if (video != null){
+                    json.put("title",video.getTitle());
+                    ShortVideoFile file = new ShortVideoFile(video.getFile());
+                    String url = getOssUrl(file.getFilePath(), OssConfig.getOssConfig(file.getOssConfig()));
+                    if (url == null) return null;
+                    json.put("playUrl",url);
+                }
+                if (u!= null){
+                    json.put("nickname",u.getNickname());
+                }
+                json.put("likes", shortVideoCommentLikeDao.countAllByCommentId(comment.getId()));
+                json.put("comments", shortVideoCommentDao.countAllByComments(comment.getId()));
+            }
+            json.put("ipReport",report.getIp());
+            json.put("user","用户不存在");
+            User u = userDao.findAllById(report.getUserId());
+            if (u!= null) {
+                json.put("user",u.getNickname());
+            }
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total", commentPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteAuditComment(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        shortVideoCommentReportDao.deleteAllById(ids);
+        return ResponseData.success();
+    }
+
+    public ResponseData denyAuditComment(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<ShortVideoCommentReport> reports = shortVideoCommentReportDao.findAllById(ids);
+        for (int i = 0; i < reports.size(); i++) {
+            reports.get(i).setState(1);
+            List<ShortVideoCommentReport> reportList = shortVideoCommentReportDao.findAllByCommentId(reports.get(i).getCommentId());
+            for (int j = 0; j < reportList.size(); j++) {
+                reportList.get(j).setState(1);
+            }
+            shortVideoCommentReportDao.saveAllAndFlush(reportList);
+            ShortVideoComment comment = shortVideoCommentDao.findAllById(reports.get(i).getCommentId());
+            if (comment != null){
+                comment.setStatus(1);
+                shortVideoCommentDao.saveAndFlush(comment);
+            }
+        }
+        shortVideoCommentReportDao.saveAllAndFlush(reports);
+        JSONArray array = new JSONArray();
+        for (ShortVideoCommentReport report : reports) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(report));
+            ShortVideoComment comment = shortVideoCommentDao.findAllById(report.getCommentId());
+            if (comment!= null) {
+                json.put("text", comment.getText());
+                json.put("addTime", comment.getAddTime());
+                json.put("ip", comment.getIp());
+                ShortVideo video = shortVideoDao.findAllById(comment.getVideoId());
+                User u = userDao.findAllById(comment.getUserId());
+                json.put("title","视频不存在!");
+                json.put("nickname","用户不存在!");
+                if (video != null){
+                    json.put("title",video.getTitle());
+                    ShortVideoFile file = new ShortVideoFile(video.getFile());
+                    String url = getOssUrl(file.getFilePath(), OssConfig.getOssConfig(file.getOssConfig()));
+                    if (url == null) return null;
+                    json.put("playUrl",url);
+                }
+                if (u!= null){
+                    json.put("nickname",u.getNickname());
+                }
+                json.put("likes", shortVideoCommentLikeDao.countAllByCommentId(comment.getId()));
+                json.put("comments", shortVideoCommentDao.countAllByComments(comment.getId()));
+            }
+            json.put("ipReport",report.getIp());
+            json.put("user","用户不存在");
+            User u = userDao.findAllById(report.getUserId());
+            if (u!= null) {
+                json.put("user",u.getNickname());
+            }
+            array.add(json);
+        }
+        return ResponseData.success(array);
+    }
+
+    public ResponseData passAuditComment(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<ShortVideoCommentReport> reports = shortVideoCommentReportDao.findAllById(ids);
+        for (int i = 0; i < reports.size(); i++) {
+            reports.get(i).setState(1);
+            List<ShortVideoCommentReport> reportList = shortVideoCommentReportDao.findAllByCommentId(reports.get(i).getCommentId());
+            for (int j = 0; j < reportList.size(); j++) {
+                reportList.get(j).setState(1);
+            }
+            shortVideoCommentReportDao.saveAllAndFlush(reportList);
+            ShortVideoComment comment = shortVideoCommentDao.findAllById(reports.get(i).getCommentId());
+            if (comment != null){
+                comment.setStatus(0);
+                shortVideoCommentDao.saveAndFlush(comment);
+            }
+        }
+        shortVideoCommentReportDao.saveAllAndFlush(reports);
+        JSONArray array = new JSONArray();
+        for (ShortVideoCommentReport report : reports) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(report));
+            ShortVideoComment comment = shortVideoCommentDao.findAllById(report.getCommentId());
+            if (comment!= null) {
+                json.put("text", comment.getText());
+                json.put("addTime", comment.getAddTime());
+                json.put("ip", comment.getIp());
+                ShortVideo video = shortVideoDao.findAllById(comment.getVideoId());
+                User u = userDao.findAllById(comment.getUserId());
+                json.put("title","视频不存在!");
+                json.put("nickname","用户不存在!");
+                if (video != null){
+                    json.put("title",video.getTitle());
+                    ShortVideoFile file = new ShortVideoFile(video.getFile());
+                    String url = getOssUrl(file.getFilePath(), OssConfig.getOssConfig(file.getOssConfig()));
+                    if (url == null) return null;
+                    json.put("playUrl",url);
+                }
+                if (u!= null){
+                    json.put("nickname",u.getNickname());
+                }
+                json.put("likes", shortVideoCommentLikeDao.countAllByCommentId(comment.getId()));
+                json.put("comments", shortVideoCommentDao.countAllByComments(comment.getId()));
+            }
+            json.put("ipReport",report.getIp());
+            json.put("user","用户不存在");
+            User u = userDao.findAllById(report.getUserId());
+            if (u!= null) {
+                json.put("user",u.getNickname());
+            }
+            array.add(json);
+        }
+        return ResponseData.success(array);
+    }
 }

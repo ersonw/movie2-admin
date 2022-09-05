@@ -78,4 +78,32 @@ public interface ShortVideoCommentDao extends JpaRepository<ShortVideoComment, L
     Object countAllByVideoId(long id);
 
     Long countAllByUserId(long id);
+    @Query(value = "SELECT * FROM short_video_comment WHERE id IN (\n" +
+            "    SELECT svc.id FROM short_video_comment AS svc INNER JOIN short_video_comment svc1 ON svc1.reply_id=svc.id WHERE (svc.status=0 OR svc1.status = 0) AND svc.reply_id = 0 AND (svc.text LIKE :title OR svc1.text LIKE :title)\n" +
+            ") Order by add_time desc ", nativeQuery = true)
+    Page<ShortVideoComment> getAllByComments(String title, Pageable pageable);
+    @Query(value = "SELECT * FROM short_video_comment WHERE id IN (\n" +
+            "    SELECT svc.id FROM short_video_comment AS svc INNER JOIN short_video_comment svc1 ON svc1.reply_id=svc.id WHERE (svc.status=0 OR svc1.status = 0) AND svc.reply_id = 0\n" +
+            ") Order by add_time desc ", nativeQuery = true)
+    Page<ShortVideoComment> getAllByComments(Pageable pageable);
+    @Query(value = "SELECT * FROM short_video_comment WHERE id IN (\n" +
+            "    SELECT svc.id FROM short_video_comment AS svc WHERE svc.status=0 AND svc.reply_id = :id AND svc.text LIKE :title\n" +
+            ") Order by add_time desc ", nativeQuery = true)
+    Page<ShortVideoComment> getAllByComments(long id,String title, Pageable pageable);
+    @Query(value = "SELECT * FROM short_video_comment WHERE id IN (\n" +
+            "    SELECT svc.id FROM short_video_comment AS svc WHERE svc.status=0 AND svc.reply_id = :id\n" +
+            ") Order by add_time desc ", nativeQuery = true)
+    Page<ShortVideoComment> getAllByComments(long id,Pageable pageable);
+    @Query(value = "SELECT COUNT(*) FROM (SELECT svc.* FROM `short_video_comment` AS svc\n" +
+            "LEFT JOIN `short_video_comment` AS svc1 ON svc1.reply_id=:id\n" +
+            "LEFT JOIN `short_video_comment` AS svc2 ON svc2.reply_id=svc1.id\n" +
+            "WHERE (svc.id =svc1.id OR svc.id = svc2.id) AND svc.status=0 ) AS s1",nativeQuery = true)
+    Long countAllByComments(long id);
+    @Query(value = "DELETE svc.*,svc1.*,svcl.*\n" +
+            "FROM short_video_comment AS svc\n" +
+            "LEFT JOIN `short_video_comment` AS svc1 ON svc1.reply_id=svc.id\n" +
+            "LEFT JOIN `short_video_comment_like` AS svcl ON svcl.comment_id= svc.id OR svcl.comment_id= svc1.id\n" +
+            "WHERE svc.id = :id",nativeQuery = true)
+    @Modifying
+    void deleteAllByComments(long id);
 }

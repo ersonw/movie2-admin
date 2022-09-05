@@ -13,4 +13,5 @@ import java.util.List;
 public interface ShortVideoCommentLikeDao extends JpaRepository<ShortVideoCommentLike, Long>, CrudRepository<ShortVideoCommentLike, Long> {
     long countAllByCommentId(long commentId);
     List<ShortVideoCommentLike> findAllByUserIdAndCommentId(long userId, long commentId);
+
 }
