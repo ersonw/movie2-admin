@@ -35,6 +35,12 @@ public  class pData  {
     private long id;
     @ApiModelProperty(name = "toId", value= "目标ID",required = false)
     private long toId;
+    @ApiModelProperty(name = "cashInId", value= "充值通道ID",required = false)
+    private long cashInId;
+    @ApiModelProperty(name = "gameId", value= "游戏ID",required = false)
+    private int gameId;
+    @ApiModelProperty(name = "less", value= "优惠",required = false)
+    private int less;
 
     @ApiModelProperty(name = "duration", value= "目标ID",required = false)
     private long duration;

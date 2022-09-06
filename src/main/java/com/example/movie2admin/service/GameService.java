@@ -1,10 +1,13 @@
 package com.example.movie2admin.service;
 
-import com.example.movie2admin.dao.*;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.example.movie2admin.dao.*;
+import com.example.movie2admin.data.EPayData;
 import com.example.movie2admin.data.ResponseData;
 import com.example.movie2admin.entity.*;
+import com.example.movie2admin.util.EPayUtil;
+import com.example.movie2admin.util.TimeUtil;
 import com.example.movie2admin.util.UrlUtil;
 import com.example.movie2admin.util.WaLiUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -112,7 +115,6 @@ public class GameService {
         }
         return array;
     }
-
     public JSONObject getGame(Game game) {
         return getGame(game, true);
     }
@@ -165,6 +167,7 @@ public class GameService {
         }
         return false;
     }
+
     public JSONObject getCard(GameOutCard card) {
         JSONObject object = new JSONObject();
         object.put("id", card.getId());
@@ -175,5 +178,201 @@ public class GameService {
         object.put("addTime", card.getAddTime());
         object.put("updateTime", card.getUpdateTime());
         return object;
+    }
+
+    public ResponseData getGameList(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
+        Page<Game> gamePage;
+        if (StringUtils.isNotEmpty(title)) {
+            gamePage = gameDao.findAllByName("%"+title+"%",pageable);
+        }else {
+            gamePage = gameDao.findAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (Game game : gamePage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(game));
+            json.put("pic", getImage(game));
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total", gamePage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteGame(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<Game> games = gameDao.findAllById(ids);
+        for (int i = 0; i < games.size(); i++) {
+            games.get(i).setStatus(-1);
+        }
+        gameDao.saveAllAndFlush(games);
+        return ResponseData.success();
+    }
+
+    public ResponseData updateGame(long id, String name, String image, int gameId, int status, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (id < 1) return ResponseData.error("");
+        if (StringUtils.isEmpty(name)) return ResponseData.error("游戏名称不可为空");
+        Game game = gameDao.findAllById(id);
+        if (game == null) return ResponseData.error("游戏不存在!");
+        name = name.replaceAll(" ","").trim().toUpperCase();
+        game.setName(name);
+        game.setImage(image);
+        game.setGameId(gameId);
+        game.setStatus(status);
+        game.setUpdateTime(System.currentTimeMillis());
+        if(game.getAddTime() == 0) game.setAddTime(System.currentTimeMillis());
+        gameDao.saveAndFlush(game);
+        JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(game));
+        json.put("pic", getImage(game));
+        return ResponseData.success(json);
+    }
+
+    public ResponseData addGame(String name, String image, int gameId, int status, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (gameId < 1) return ResponseData.error("游戏ID不可为0");
+        if (StringUtils.isEmpty(name)) return ResponseData.error("游戏名称不可为空");
+        Game game = gameDao.findAllByGameId(gameId);
+        if (game != null) return ResponseData.error("游戏ID已存在!");
+        name = name.replaceAll(" ","").trim().toUpperCase();
+        game = new Game();
+        game.setName(name);
+        game.setImage(image);
+        game.setGameId(gameId);
+        game.setStatus(status);
+        game.setUpdateTime(System.currentTimeMillis());
+        game.setAddTime(System.currentTimeMillis());
+        gameDao.saveAndFlush(game);
+        JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(game));
+        json.put("pic", getImage(game));
+        return ResponseData.success(json);
+    }
+
+    public ResponseData getButtonList(long title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.ASC,"amount"));
+        Page<GameButton> buttonPage;
+        if (title > 0) {
+            buttonPage = gameButtonDao.findAllByAmountGreaterThanEqual(title,pageable);
+        }else {
+            buttonPage = gameButtonDao.findAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (GameButton button : buttonPage.getContent()) {
+            array.add(getButton(button));
+        }
+        JSONObject object = ResponseData.object("total", buttonPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteButton(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<GameButton> buttons = gameButtonDao.findAllById(ids);
+        for (int i = 0; i < buttons.size(); i++) {
+            buttons.get(i).setStatus(-1);
+        }
+        gameButtonDao.saveAllAndFlush(buttons);
+        return ResponseData.success();
+    }
+
+    public ResponseData updateButton(long id, long amount, Double price, int less, long cashInId, int status, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        GameButton button = gameButtonDao.findAllById(id);
+        if (button == null) return ResponseData.error("按钮不存在");
+        if (cashInId > 0){
+            CashInConfig config = cashInConfigDao.findAllById(cashInId);
+            if (config == null) return ResponseData.error("通道ID不存在");
+        }else{
+            cashInId = 0;
+        }
+        button.setAmount(amount);
+        button.setPrice(price.longValue());
+        button.setCashInId(cashInId);
+        button.setLess(less);
+        button.setStatus(status);
+        button.setUpdateTime(System.currentTimeMillis());
+        if (button.getAddTime() == 0) button.setAddTime(System.currentTimeMillis());
+        gameButtonDao.saveAndFlush(button);
+        return ResponseData.success(getButton(button));
+    }
+    public JSONObject getButton(GameButton button){
+        JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(button));
+        json.put("cashIn","不指定充值通道");
+        json.put("typeStr","无支付方式");
+        List<CashInOption> options = new ArrayList<>();
+        if (button.getCashInId() > 0){
+            json.put("cashIn","指定充值通道已被删除");
+            CashInConfig config = cashInConfigDao.findAllById(button.getCashInId());
+            if (config != null){
+                json.put("cashIn", config.getTitle());
+                options = getAllowed(config);
+            }
+        }else{
+            options = cashInOptionDao.findAll();
+        }
+        if (options.size() > 0){
+            StringBuilder sb = new StringBuilder();
+            for (CashInOption option: options) {
+                sb.append(option.getName()).append(",");
+            }
+            json.put("typeStr",sb.toString());
+        }
+        return json;
+    }
+    public ResponseData addButton(long amount, Double price, int less, long cashInId, int status, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (cashInId > 0){
+            CashInConfig config = cashInConfigDao.findAllById(cashInId);
+            if (config == null) return ResponseData.error("通道ID不存在");
+        }else{
+            cashInId = 0;
+        }
+        GameButton button = new GameButton();
+        button.setAmount(amount);
+        button.setPrice(price.longValue());
+        button.setCashInId(cashInId);
+        button.setLess(less);
+        button.setStatus(status);
+        button.setUpdateTime(System.currentTimeMillis());
+        button.setAddTime(System.currentTimeMillis());
+        gameButtonDao.saveAndFlush(button);
+        return ResponseData.success(getButton(button));
+    }
+
+    public ResponseData getButtonConfigList(SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<CashInConfig> configs = cashInConfigDao.findAll();
+        JSONArray array = new JSONArray();
+        for (CashInConfig config: configs) {
+            JSONObject object = new JSONObject();
+            object.put("id", config.getId());
+            object.put("title", config.getTitle());
+            object.put("status", config.getStatus());
+            array.add(object);
+        }
+        return ResponseData.success(array);
+    }
+
+    public ResponseData getButtonConfig(long id, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        CashInConfig config = null;
+        if (id > 0) {
+            config = cashInConfigDao.findAllById(id);
+            if (config == null) return ResponseData.success(ResponseData.object("result", ""));
+        }
+        List<CashInOption> options = getAllowed(config);
+        StringBuilder sb = new StringBuilder();
+        for (CashInOption option: options) {
+            sb.append(option.getName()).append(",");
+        }
+        return ResponseData.success(ResponseData.object("result", sb.toString()));
     }
 }
