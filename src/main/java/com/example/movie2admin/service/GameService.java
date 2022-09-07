@@ -160,7 +160,7 @@ public class GameService {
         if (order == null) return false;
         User user = userDao.findAllById(order.getUserId());
         if (user == null) return false;
-        GameFunds fund = new GameFunds(user.getId(), order.getAmount() * 100, "在线充值");
+        GameFunds fund = new GameFunds(user.getId(), order.getAmount() * 100, "后台补单:\n"+orderId);
         if (WaLiUtil.tranfer(user.getId(),fund.getAmount())){
             gameFundsDao.saveAndFlush(fund);
             return true;
@@ -422,5 +422,95 @@ public class GameService {
         if (user == null) return ResponseData.error("");
         gameConfigDao.saveAllAndFlush(getUpdateGameConfig(data));
         return ResponseData.success();
+    }
+
+    public ResponseData getGameOrderList(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
+        Page<GameOrder> orderPage;
+        if (StringUtils.isNotEmpty(title)) {
+            orderPage = gameOrderDao.findAllByOrderNo("%"+title+"%",pageable);
+        }else {
+            orderPage = gameOrderDao.findAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (GameOrder order : orderPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(order));
+            User u = userDao.findAllById(order.getUserId());
+            CashInOrder inOrder = cashInOrderDao.findAllByOrderNo(order.getOrderNo());
+            json.put("price", String.format("%.2f", order.getPrice() / 100D));
+            json.put("user", "用户不存在");
+            json.put("status",0);
+            json.put("type","支付方式不存在");
+            json.put("ip","没有IP");
+            if (u!= null) {
+                json.put("user", u.getUsername());
+            }
+            if (inOrder!= null && inOrder.getStatus() >= 0) {
+                json.put("status",inOrder.getStatus());
+                json.put("totalFee",inOrder.getTotalFee());
+                json.put("tradeNo",inOrder.getTradeNo());
+                CashInOption option = cashInOptionDao.findAllById(inOrder.getType());
+                if (option != null)json.put("type", option.getName());
+                json.put("ip",inOrder.getIp());
+                array.add(json);
+            }
+        }
+        JSONObject object = ResponseData.object("total", orderPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteGameOrder(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<GameOrder> orders = gameOrderDao.findAllById(ids);
+        List<CashInOrder> inOrders = new ArrayList<>();
+        for (int i = 0; i < orders.size(); i++) {
+            CashInOrder order = cashInOrderDao.findAllByOrderNo(orders.get(i).getOrderNo());
+            if (order != null){
+                order.setStatus(-1);
+                inOrders.add(order);
+            }
+        }
+        cashInOrderDao.saveAllAndFlush(inOrders);
+        return ResponseData.success();
+    }
+    public ResponseData makeupGameOrder(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<GameOrder> orders = gameOrderDao.findAllById(ids);
+        List<CashInOrder> inOrders = new ArrayList<>();
+        JSONArray array = new JSONArray();
+        for (GameOrder order: orders) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(order));
+            User u = userDao.findAllById(order.getUserId());
+            CashInOrder inOrder = cashInOrderDao.findAllByOrderNo(order.getOrderNo());
+            json.put("price", String.format("%.2f", order.getPrice() / 100D));
+            json.put("user", "用户不存在");
+            json.put("status",0);
+            json.put("type","支付方式不存在");
+            json.put("ip","没有IP");
+            if (u!= null) {
+                json.put("user", u.getUsername());
+            }
+            if (inOrder != null && inOrder.getStatus() != 1) {
+                inOrder.setStatus(1);
+                inOrders.add(inOrder);
+                json.put("status",inOrder.getStatus());
+                json.put("totalFee",inOrder.getTotalFee());
+                json.put("tradeNo",inOrder.getTradeNo());
+                CashInOption option = cashInOptionDao.findAllById(inOrder.getType());
+                if (option != null)json.put("type", option.getName());
+                json.put("ip",inOrder.getIp());
+                array.add(json);
+            }
+        }
+        cashInOrderDao.saveAllAndFlush(inOrders);
+        for (CashInOrder order: inOrders) {
+            handlerOrder(order.getOrderNo());
+        }
+        return ResponseData.success(array);
     }
 }

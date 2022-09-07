@@ -88,4 +88,23 @@ public class GameControl {
     public ResponseData updateGameConfig(@RequestBody JSONObject data){
         return service.updateGameConfig(data);
     }
+    @GetMapping("/getGameOrderList")
+    public ResponseData getGameOrderList(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getGameOrderList(title,page,limit, SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteGameOrder")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteGameOrder(@RequestBody pData data){
+        return service.deleteGameOrder(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/makeupGameOrder")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData makeupGameOrder(@RequestBody pData data){
+        return service.makeupGameOrder(data.getIds(),data.getUser(), data.getIp());
+    }
 }
