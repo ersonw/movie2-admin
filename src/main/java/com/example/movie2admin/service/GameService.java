@@ -432,7 +432,7 @@ public class GameService {
         Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
         Page<GameOrder> orderPage;
         if (StringUtils.isNotEmpty(title)) {
-            orderPage = gameOrderDao.findAllByOrderNo("%"+title+"%",pageable);
+            orderPage = gameOrderDao.findAllByOrderNoLike("%"+title+"%",pageable);
         }else {
             orderPage = gameOrderDao.findAll(pageable);
         }

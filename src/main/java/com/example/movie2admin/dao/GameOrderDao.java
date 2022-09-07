@@ -12,6 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface GameOrderDao extends JpaRepository<GameOrder, Long>, CrudRepository<GameOrder, Long> {
     GameOrder findAllByOrderNo(String orderNo);
-    Page<GameOrder> findAllByOrderNo(String orderNo, Pageable pageable);
+    Page<GameOrder> findAllByOrderNoLike(String orderNo, Pageable pageable);
     GameOrder findAllById(long id);
 }
