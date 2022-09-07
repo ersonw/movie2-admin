@@ -375,4 +375,52 @@ public class GameService {
         }
         return ResponseData.success(ResponseData.object("result", sb.toString()));
     }
+    public List<GameConfig> getUpdateGameConfig(JSONObject data){
+        List<GameConfig> configs = new ArrayList<>();
+        JSONObject object = new JSONObject();
+        for (String key : data.keySet()) {
+            if (
+                    data.get(key) != null && !key.equals("ip") &&
+                            data.get(key) != null && !key.equals("isWeb") &&
+                            data.get(key) != null && !key.equals("serverName") &&
+                            data.get(key) != null && !key.equals("serverPort") &&
+                            data.get(key) != null && !key.equals("uri") &&
+                            data.get(key) != null && !key.equals("url") &&
+                            data.get(key) != null && !key.equals("schema") &&
+                            data.get(key) != null && !key.equals("user")
+            ){
+                object.put(key, data.get(key));
+            }
+        }
+        for (String key : object.keySet()) {
+            GameConfig config = gameConfigDao.findByName(key);
+            if (config == null){
+                config = new GameConfig(key, object.getString(key));
+            }else{
+                config.setVal(object.getString(key));
+                config.setUpdateTime(System.currentTimeMillis());
+            }
+            configs.add(config);
+        }
+        return configs;
+    }
+
+    public ResponseData getGameConfig(SysUser user, String ip) {
+        if (user == null) return ResponseData.error("");
+        List<GameConfig> configs = gameConfigDao.findAll();
+        JSONObject object = new JSONObject();
+        for (GameConfig config: configs) {
+            object.put(config.getName(), config.getVal());
+        }
+        return ResponseData.success(object);
+    }
+
+    public ResponseData updateGameConfig(JSONObject data) {
+        String u = data.getString("user");
+        if (StringUtils.isEmpty(u)) return ResponseData.error("");
+        SysUser user = SysUser.getUser(u);
+        if (user == null) return ResponseData.error("");
+        gameConfigDao.saveAllAndFlush(getUpdateGameConfig(data));
+        return ResponseData.success();
+    }
 }

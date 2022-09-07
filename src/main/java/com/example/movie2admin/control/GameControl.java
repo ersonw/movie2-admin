@@ -1,5 +1,6 @@
 package com.example.movie2admin.control;
 
+import com.alibaba.fastjson.JSONObject;
 import com.example.movie2admin.data.ResponseData;
 import com.example.movie2admin.data.pData;
 import com.example.movie2admin.entity.SysUser;
@@ -76,5 +77,15 @@ public class GameControl {
             @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
             @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
         return service.getButtonConfig(id, SysUser.getUser(user), ip);
+    }
+    @GetMapping("/getGameConfig")
+    public ResponseData getGameConfig(
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getGameConfig(SysUser.getUser(user), ip);
+    }
+    @PostMapping("/updateGameConfig")
+    public ResponseData updateGameConfig(@RequestBody JSONObject data){
+        return service.updateGameConfig(data);
     }
 }
