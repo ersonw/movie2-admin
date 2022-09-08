@@ -597,7 +597,7 @@ public class GameService {
             json.put("water",0);
             json.put("user","用户不存在");
             if (u!= null) {
-                json.put("user", u.getUsername());
+                json.put("user", u.getNickname());
             }
             array.add(json);
         }
@@ -606,11 +606,11 @@ public class GameService {
         return ResponseData.success(object);
     }
 
-    public ResponseData makeDownGameWithdrawOrder(List<Long> ids, SysUser user, String ip) {
+    public ResponseData makeupGameWithdrawOrder(List<Long> ids, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
         List<GameOutOrder> orders = gameOutOrderDao.findAllById(ids);
         for (int i = 0; i < orders.size(); i++) {
-            orders.get(i).setStatus(-1);
+            orders.get(i).setStatus(1);
         }
         gameOutOrderDao.saveAllAndFlush(orders);
         return ResponseData.success();
@@ -619,11 +619,15 @@ public class GameService {
         if (order.getStatus() != 0) return false;
         return WaLiUtil.tranfer(order.getUserId(), order.getAmount() * 100);
     }
-    public ResponseData makeupGameWithdrawOrder(List<Long> ids, SysUser user, String ip) {
+    public ResponseData makeDownGameWithdrawOrder(List<Long> ids, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
         List<GameOutOrder> orders = gameOutOrderDao.findAllById(ids);
         for (int i = 0; i < orders.size(); i++) {
-            if (handlerRefund(orders.get(i))) orders.get(i).setStatus(1);
+            if (handlerRefund(orders.get(i))){
+                orders.get(i).setStatus(-1);
+                GameFunds fund = new GameFunds(user.getId(), orders.get(i).getAmount() * 100, "提现退回:\n"+orders.get(i).getOrderNo());
+                gameFundsDao.save(fund);
+            }
         }
         gameOutOrderDao.saveAllAndFlush(orders);
         return ResponseData.success();
