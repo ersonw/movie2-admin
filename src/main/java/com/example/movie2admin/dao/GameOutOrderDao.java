@@ -16,4 +16,10 @@ public interface GameOutOrderDao extends JpaRepository<GameOutOrder, Long>, Crud
     Long getAllBywBalance(long userId, int status);
     @Query(value = "SELECT IFNULL( SUM(amount), 0 )  FROM `game_out_order` WHERE user_id=:userId AND status <> 1",nativeQuery = true)
     Long getAllByFreezeBalance(long userId);
+
+    Page<GameOutOrder> findAllByOrderNoLike(String s, Pageable pageable);
+
+    Page<GameOutOrder> findAllByOrderNoLikeAndStatus(String s, int status, Pageable pageable);
+
+    Page<GameOutOrder> findAllByStatus(int status, Pageable pageable);
 }

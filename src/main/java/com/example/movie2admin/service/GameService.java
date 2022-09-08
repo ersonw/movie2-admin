@@ -404,6 +404,35 @@ public class GameService {
         }
         return configs;
     }
+    public List<GameOutConfig> getUpdateGameWithdrawConfig(JSONObject data){
+        List<GameOutConfig> configs = new ArrayList<>();
+        JSONObject object = new JSONObject();
+        for (String key : data.keySet()) {
+            if (
+                    data.get(key) != null && !key.equals("ip") &&
+                            data.get(key) != null && !key.equals("isWeb") &&
+                            data.get(key) != null && !key.equals("serverName") &&
+                            data.get(key) != null && !key.equals("serverPort") &&
+                            data.get(key) != null && !key.equals("uri") &&
+                            data.get(key) != null && !key.equals("url") &&
+                            data.get(key) != null && !key.equals("schema") &&
+                            data.get(key) != null && !key.equals("user")
+            ){
+                object.put(key, data.get(key));
+            }
+        }
+        for (String key : object.keySet()) {
+            GameOutConfig config = gameOutConfigDao.findByName(key);
+            if (config == null){
+                config = new GameOutConfig(key, object.getString(key));
+            }else{
+                config.setVal(object.getString(key));
+                config.setUpdateTime(System.currentTimeMillis());
+            }
+            configs.add(config);
+        }
+        return configs;
+    }
 
     public ResponseData getGameConfig(SysUser user, String ip) {
         if (user == null) return ResponseData.error("");
@@ -512,5 +541,91 @@ public class GameService {
             handlerOrder(order.getOrderNo());
         }
         return ResponseData.success(array);
+    }
+
+    public ResponseData getGameWithdrawConfig(SysUser user, String ip) {
+        if (user == null) return ResponseData.error("");
+        List<GameOutConfig> configs = gameOutConfigDao.findAll();
+        JSONObject object = new JSONObject();
+        for (GameOutConfig config: configs) {
+            object.put(config.getName(), config.getVal());
+        }
+        return ResponseData.success(object);
+    }
+
+    public ResponseData updateGameWithdrawConfig(JSONObject data) {
+        String u = data.getString("user");
+        if (StringUtils.isEmpty(u)) return ResponseData.error("");
+        SysUser user = SysUser.getUser(u);
+        if (user == null) return ResponseData.error("");
+        gameOutConfigDao.saveAllAndFlush(getUpdateGameWithdrawConfig(data));
+        return ResponseData.success();
+    }
+
+    public ResponseData getGameWithdrawOrder(String title, boolean enabled, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
+        Page<GameOutOrder> orderPage;
+        if (StringUtils.isNotEmpty(title)) {
+            if (enabled){
+                orderPage = gameOutOrderDao.findAllByOrderNoLikeAndStatus("%"+title+"%",0,pageable);
+            }else{
+                orderPage = gameOutOrderDao.findAllByOrderNoLike("%"+title+"%",pageable);
+            }
+        }else {
+            if (enabled){
+                orderPage = gameOutOrderDao.findAllByStatus(0,pageable);
+            }else{
+                orderPage = gameOutOrderDao.findAll(pageable);
+            }
+        }
+        JSONArray array = new JSONArray();
+        for (GameOutOrder order : orderPage.getContent()) {
+            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(order));
+            User u = userDao.findAllById(order.getUserId());
+//            json.put("amount", String.format("%.2f", order.getAmount() / 1D));
+            json.put("fee", String.format("%.2f", order.getFee()));
+            json.put("totalFee", String.format("%.2f", order.getTotalFee()));
+//            json.put("allIn", 0);
+//            json.put("allOut", 0);
+//            json.put("toDayIn",0);
+//            json.put("toDayOut",0);
+            json.put("recentIn",0);
+            json.put("water",0);
+            json.put("user","用户不存在");
+            if (u!= null) {
+                json.put("user", u.getUsername());
+            }
+            array.add(json);
+        }
+        JSONObject object = ResponseData.object("total", orderPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData makeDownGameWithdrawOrder(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<GameOutOrder> orders = gameOutOrderDao.findAllById(ids);
+        for (int i = 0; i < orders.size(); i++) {
+            orders.get(i).setStatus(-1);
+        }
+        gameOutOrderDao.saveAllAndFlush(orders);
+        return ResponseData.success();
+    }
+    public boolean handlerRefund(GameOutOrder order){
+        if (order.getStatus() != 0) return false;
+        return WaLiUtil.tranfer(order.getUserId(), order.getAmount() * 100);
+    }
+    public ResponseData makeupGameWithdrawOrder(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<GameOutOrder> orders = gameOutOrderDao.findAllById(ids);
+        for (int i = 0; i < orders.size(); i++) {
+            if (handlerRefund(orders.get(i))) orders.get(i).setStatus(1);
+        }
+        gameOutOrderDao.saveAllAndFlush(orders);
+        return ResponseData.success();
     }
 }

@@ -13,4 +13,6 @@ import java.util.List;
 public interface GameOutConfigDao extends JpaRepository<GameOutConfig, Long>, CrudRepository<GameOutConfig, Long> {
     GameOutConfig findAllById(long id);
     List<GameOutConfig> findAllByName(String name);
+
+    GameOutConfig findByName(String key);
 }

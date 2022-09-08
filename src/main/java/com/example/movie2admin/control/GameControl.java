@@ -107,4 +107,34 @@ public class GameControl {
     public ResponseData makeupGameOrder(@RequestBody pData data){
         return service.makeupGameOrder(data.getIds(),data.getUser(), data.getIp());
     }
+    @GetMapping("/getGameWithdrawConfig")
+    public ResponseData getGameWithdrawConfig(
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getGameWithdrawConfig(SysUser.getUser(user), ip);
+    }
+    @PostMapping("/updateGameWithdrawConfig")
+    public ResponseData updateGameWithdrawConfig(@RequestBody JSONObject data){
+        return service.updateGameWithdrawConfig(data);
+    }
+    @GetMapping("/getGameWithdrawOrder")
+    public ResponseData getGameWithdrawOrder(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "enabled", required = false,defaultValue = "false") boolean enabled,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getGameWithdrawOrder(title,enabled,page,limit, SysUser.getUser(user), ip);
+    }
+    @PostMapping("/makeDownGameWithdrawOrder")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData makeDownGameWithdrawOrder(@RequestBody pData data){
+        return service.makeDownGameWithdrawOrder(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/makeupGameWithdrawOrder")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData makeupGameWithdrawOrder(@RequestBody pData data){
+        return service.makeupGameWithdrawOrder(data.getIds(),data.getUser(), data.getIp());
+    }
 }
