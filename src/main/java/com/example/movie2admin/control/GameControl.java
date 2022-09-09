@@ -186,4 +186,57 @@ public class GameControl {
             @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
         return service.updateGameWater(SysUser.getUser(user), ip);
     }
+    @GetMapping("/getGamePublicity")
+    public ResponseData getGamePublicity(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getGamePublicity(title,page,limit, SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteGamePublicity")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteGamePublicity(@RequestBody pData data){
+        return service.deleteGamePublicity(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/updateGamePublicity")
+    @ApiGlobalModel(component = pData.class, value = "name,pic,url1,status,type,id")
+    public ResponseData updateGamePublicity(@RequestBody pData data){
+        return service.updateGamePublicity(data.getId(),data.getName(),data.getPic(),data.getUrl1(),data.getStatus(),data.getType(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addGamePublicity")
+    @ApiGlobalModel(component = pData.class, value = "name,pic,url1,status,type")
+    public ResponseData addGamePublicity(@RequestBody pData data){
+        return service.addGamePublicity(data.getName(),data.getPic(),data.getUrl1(),data.getStatus(),data.getType(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getGameScroll")
+    public ResponseData getGameScroll(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getGameScroll(title,page,limit, SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteGameScroll")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteGameScroll(@RequestBody pData data){
+        return service.deleteGameScroll(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/updateGameScroll")
+    @ApiGlobalModel(component = pData.class, value = "name,amount,game,id")
+    public ResponseData updateGameScroll(@RequestBody pData data){
+        return service.updateGameScroll(data.getId(),data.getName(),data.getAmount(),data.getGame(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addGameScroll")
+    @ApiGlobalModel(component = pData.class, value =  "name,amount,game,id")
+    public ResponseData addGameScroll(@RequestBody pData data){
+        return service.addGameScroll(data.getName(),data.getAmount(),data.getGame(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/automaticGameScroll")
+    @ApiGlobalModel(component = pData.class, value = "amount")
+    public ResponseData automaticGameScroll(@RequestBody pData data){
+        return service.automaticGameScroll(data.getAmount(),data.getUser(), data.getIp());
+    }
 }

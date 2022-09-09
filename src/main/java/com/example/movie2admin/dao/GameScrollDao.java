@@ -12,4 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface GameScrollDao extends JpaRepository<GameScroll, Long>, CrudRepository<GameScroll, Long> {
     Page<GameScroll> findAllByAddTimeGreaterThanEqual(long time, Pageable pageable);
+    GameScroll findAllById(long id);
+    Page<GameScroll> findAllByNameLike(String s, Pageable pageable);
 }

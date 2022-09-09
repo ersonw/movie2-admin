@@ -813,4 +813,133 @@ public class GameService {
         WaLiUtil.getRecords();
         return ResponseData.success();
     }
+
+    public ResponseData getGamePublicity(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
+        Page<GamePublicity> publicityPage;
+        if (StringUtils.isNotEmpty(title)){
+            publicityPage = gamePublicityDao.findAllByNameLike("%"+title+"%",pageable);
+        }else{
+            publicityPage = gamePublicityDao.findAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (GamePublicity publicity : publicityPage.getContent()) {
+            array.add(getGamePublicity(publicity));
+        }
+        JSONObject object = ResponseData.object("total", publicityPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+    public JSONObject getGamePublicity(GamePublicity publicity){
+        JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(publicity));
+        json.put("count", gamePublicityReportDao.countAllByPublicityId(publicity.getId()));
+        return json;
+    }
+    public ResponseData deleteGamePublicity(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        for (Long id : ids){
+            gamePublicityReportDao.removeAllById(id);
+        }
+        return ResponseData.success();
+    }
+
+    public ResponseData addGamePublicity(String name, String pic, String url1, int status, int type, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (StringUtils.isEmpty(pic)) return ResponseData.error("图片地址不可空");
+        name = name.replaceAll(" ", "").trim().toUpperCase();
+        if(StringUtils.isEmpty(url1)) url1=pic;
+        GamePublicity publicity = new GamePublicity();
+        publicity.setName(name);
+        publicity.setPic(pic);
+        publicity.setUrl(url1);
+        publicity.setStatus(status);
+        publicity.setType(type);
+        publicity.setAddTime(System.currentTimeMillis());
+        publicity.setUpdateTime(System.currentTimeMillis());
+        gamePublicityDao.save(publicity);
+        return ResponseData.success(getGamePublicity(publicity));
+    }
+
+    public ResponseData updateGamePublicity(long id, String name, String pic, String url, int status, int type, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if(id < 1) return ResponseData.error("记录不存在!");
+        GamePublicity publicity = gamePublicityDao.findAllById(id);
+        if (publicity == null) return ResponseData.error("记录不存在");
+        if (StringUtils.isEmpty(pic)) return ResponseData.error("图片地址不可空");
+        name = name.replaceAll(" ", "").trim().toUpperCase();
+        if(StringUtils.isEmpty(url)) url=pic;
+        publicity.setName(name);
+        publicity.setPic(pic);
+        publicity.setUrl(url);
+        publicity.setStatus(status);
+        publicity.setType(type);
+        if (publicity.getAddTime() == 0)publicity.setAddTime(System.currentTimeMillis());
+        publicity.setUpdateTime(System.currentTimeMillis());
+        gamePublicityDao.save(publicity);
+        return ResponseData.success(getGamePublicity(publicity));
+    }
+
+    public ResponseData getGameScroll(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
+        Page<GameScroll> scrollPage;
+        if (StringUtils.isNotEmpty(title)){
+            scrollPage = gameScrollDao.findAllByNameLike("%"+title+"%",pageable);
+        }else{
+            scrollPage = gameScrollDao.findAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (GameScroll scroll : scrollPage.getContent()) {
+            array.add(getGameScroll(scroll));
+        }
+        JSONObject object = ResponseData.object("total", scrollPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+    public JSONObject getGameScroll(GameScroll scroll ){
+        JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(scroll));
+        return object;
+    }
+
+    public ResponseData deleteGameScroll(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        gameScrollDao.deleteAllById(ids);
+        return ResponseData.success();
+    }
+
+    public ResponseData updateGameScroll(long id, String name, long amount, String game, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (id < 1) return ResponseData.error("记录不存在");
+        GameScroll gameScroll = gameScrollDao.findAllById(id);
+        if (gameScroll == null) return ResponseData.error("记录不存在");
+        name = name.replaceAll(" ", "").trim();
+        game = game.replaceAll(" ","").trim();
+        gameScroll.setName(name);
+        gameScroll.setAmount(amount);
+        gameScroll.setGame(game);
+        if (gameScroll.getAddTime() == 0) gameScroll.setAddTime(System.currentTimeMillis());
+        gameScrollDao.save(gameScroll);
+        return ResponseData.success(getGameScroll(gameScroll));
+    }
+
+    public ResponseData addGameScroll(String name, long amount, String game, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        name = name.replaceAll(" ", "").trim();
+        game = game.replaceAll(" ","").trim();
+        GameScroll gameScroll = new GameScroll(name,amount,game);
+        gameScrollDao.save(gameScroll);
+        return ResponseData.success(getGameScroll(gameScroll));
+    }
+
+    public ResponseData automaticGameScroll(long amount, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        return ResponseData.error("暂未开发");
+    }
 }

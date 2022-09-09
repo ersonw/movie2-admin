@@ -28,6 +28,7 @@ public class GamePublicity {
     private String pic;
     private String url;
     private long addTime;
+    private long updateTime;
     private int status;
     private int type;
 }
