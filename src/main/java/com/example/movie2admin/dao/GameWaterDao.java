@@ -26,17 +26,21 @@ public interface GameWaterDao extends JpaRepository<GameWater, Long>, CrudReposi
             "ON t2.game_id = t1.game_id\n" +
             "AND t2.id = t1.id order by t1.id desc\n",nativeQuery = true)
     List<GameWater> getAllByUser(long userId);
-    @Query(value = "SELECT gw.* FROM user as u INNER JOIN game_water AS gw ON gw.user_id=u.id WHERE u.id = :id",nativeQuery = true)
+
+
+    @Query(value = "SELECT * FROM game_water WHERE id IN (SELECT gw.id FROM user as u INNER JOIN game_water AS gw ON gw.user_id=u.id  WHERE u.id = :id)",nativeQuery = true)
     Page<GameWater> getGameWaterListById(long id,Pageable pageable);
-    @Query(value = "SELECT gw.* FROM user as u INNER JOIN game_water AS gw ON gw.user_id=u.id AND gw.record_time > :start AND gw.record_time < :end WHERE u.id = :id",nativeQuery = true)
+    @Query(value = "SELECT * FROM game_water WHERE id IN (SELECT gw.id FROM user as u INNER JOIN game_water AS gw ON gw.user_id=u.id AND gw.record_time < :end AND gw.record_time > :start WHERE u.id = :id)",nativeQuery = true)
     Page<GameWater> getGameWaterListById(long id,long start,long end,Pageable pageable);
-    @Query(value = "SELECT gw.* FROM user as u INNER JOIN game_water AS gw ON gw.user_id=u.id AND gw.record_time < :end WHERE u.id = :id",nativeQuery = true)
+    @Query(value = "SELECT * FROM game_water WHERE id IN (SELECT gw.id FROM user as u INNER JOIN game_water AS gw ON gw.user_id=u.id AND gw.record_time < :end WHERE u.id = :id)",nativeQuery = true)
     Page<GameWater> getGameWaterListByIdEnd(long id,long end,Pageable pageable);
-    @Query(value = "SELECT gw.* FROM user as u INNER JOIN game_water AS gw ON gw.user_id=u.id AND gw.record_time > :end WHERE u.id = :id",nativeQuery = true)
-    Page<GameWater> getGameWaterListByIdStart(long id,long end,Pageable pageable);
+    @Query(value = "SELECT * FROM game_water WHERE id IN (SELECT gw.id FROM user as u INNER JOIN game_water AS gw ON gw.user_id=u.id AND gw.record_time > :start WHERE u.id = :id)",nativeQuery = true)
+    Page<GameWater> getGameWaterListById(long id,long start,Pageable pageable);
+
+
+
     @Query(value = "SELECT IFNULL( SUM(valid_bet), 0 ) FROM game_water WHERE user_id=:id",nativeQuery = true)
     Long getValidBet(long id);
-
     @Query(value = "SELECT IFNULL( SUM(profit), 0 ) FROM game_water WHERE user_id=:id",nativeQuery = true)
     Long getProfit(long id);
 

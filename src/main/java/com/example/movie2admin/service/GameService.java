@@ -707,6 +707,8 @@ public class GameService {
         if (limit < 0) limit = 20;
         Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
         Page<User> userPage;
+        if (start > System.currentTimeMillis()) start = System.currentTimeMillis();
+        if (end > System.currentTimeMillis()) end = System.currentTimeMillis();
         if (StringUtils.isNotEmpty(title)) {
             if (type == 0){
                 userPage = userDao.findAllById(new Long(title),pageable);
@@ -753,7 +755,7 @@ public class GameService {
             object.put("cashOut", String.format("%.2f", gameOutOrderDao.getCashOut(profile.getId()) / 1D));
             object.put("firstTime",gameWaterDao.getFirstTime(profile.getId()));
             object.put("lastTime",gameWaterDao.getLastTime(profile.getId()));
-            System.out.println(object);
+//            System.out.println(object);
             array.add(object);
         }
         JSONObject josn = ResponseData.object("total", userPage.getTotalElements());
@@ -764,16 +766,21 @@ public class GameService {
         if (user == null) return ResponseData.error(201);
         User u = userDao.findAllById(userId);
         if (u == null) return ResponseData.error("用户不存在!");
+        page--;
         if (page < 0) page = 0;
         if (limit < 0) limit = 20;
-        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"add_time"));
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"record_time"));
         Page<GameWater> waterPage;
         if (start > System.currentTimeMillis()) start = System.currentTimeMillis();
         if (end > System.currentTimeMillis()) end = System.currentTimeMillis();
+
         if (start > 0 && end > 0) {
+//            System.out.println(start);
+//            System.out.println(end);
             waterPage = gameWaterDao.getGameWaterListById(userId,start,end,pageable);
         } else if (start > 0){
-            waterPage = gameWaterDao.getGameWaterListByIdStart(userId, start,pageable);
+//            System.out.println(start);
+            waterPage = gameWaterDao.getGameWaterListById(userId, start,pageable);
         } else if (end > 0){
             waterPage = gameWaterDao.getGameWaterListByIdEnd(userId, end,pageable);
         }else{
