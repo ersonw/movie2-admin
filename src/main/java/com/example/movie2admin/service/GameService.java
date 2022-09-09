@@ -584,28 +584,26 @@ public class GameService {
         }
         JSONArray array = new JSONArray();
         for (GameOutOrder order : orderPage.getContent()) {
-            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(order));
-            User u = userDao.findAllById(order.getUserId());
-//            json.put("amount", String.format("%.2f", order.getAmount() / 1D));
-            json.put("fee", String.format("%.2f", order.getFee()));
-            json.put("totalFee", String.format("%.2f", order.getTotalFee()));
-//            json.put("allIn", 0);
-//            json.put("allOut", 0);
-//            json.put("toDayIn",0);
-//            json.put("toDayOut",0);
-            json.put("recentIn",0);
-            json.put("water",0);
-            json.put("user","用户不存在");
-            if (u!= null) {
-                json.put("user", u.getNickname());
-            }
-            array.add(json);
+            array.add(getGameOutOrder(order));
         }
         JSONObject object = ResponseData.object("total", orderPage.getTotalElements());
         object.put("list", array);
         return ResponseData.success(object);
     }
-
+    public JSONObject getGameOutOrder(GameOutOrder order){
+        JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(order));
+        User u = userDao.findAllById(order.getUserId());
+//            json.put("amount", String.format("%.2f", order.getAmount() / 1D));
+        json.put("fee", String.format("%.2f", order.getFee()));
+        json.put("totalFee", String.format("%.2f", order.getTotalFee()));
+        json.put("recentIn",String.format("%.2f", gameOutOrderDao.getRecentIn(order.getId()) / 1D));
+        json.put("water",String.format("%.2f", gameOutOrderDao.getRecentWater(order.getId()) / 100D));
+        json.put("user","用户不存在");
+        if (u!= null) {
+            json.put("user", u.getNickname());
+        }
+        return json;
+    }
     public ResponseData makeupGameWithdrawOrder(List<Long> ids, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
         List<GameOutOrder> orders = gameOutOrderDao.findAllById(ids);
@@ -613,7 +611,11 @@ public class GameService {
             orders.get(i).setStatus(1);
         }
         gameOutOrderDao.saveAllAndFlush(orders);
-        return ResponseData.success();
+        JSONArray array = new JSONArray();
+        for (GameOutOrder order : orders) {
+            array.add(getGameOutOrder(order));
+        }
+        return ResponseData.success(array);
     }
     public boolean handlerRefund(GameOutOrder order){
         if (order.getStatus() != 0) return false;
@@ -630,6 +632,178 @@ public class GameService {
             }
         }
         gameOutOrderDao.saveAllAndFlush(orders);
+        JSONArray array = new JSONArray();
+        for (GameOutOrder order : orders) {
+            array.add(getGameOutOrder(order));
+        }
+        return ResponseData.success(array);
+    }
+
+    public ResponseData getGameWithdrawCard(String title, boolean enabled, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"id"));
+        Page<GameOutCard> cardPage;
+        if (StringUtils.isNotEmpty(title)) {
+            if (enabled){
+                cardPage = gameOutCardDao.getGameWithdrawCard(new Long(title),pageable);
+            }else{
+                cardPage = gameOutCardDao.getGameWithdrawCard("%"+title+"%",pageable);
+            }
+        }else {
+            cardPage = gameOutCardDao.findAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (GameOutCard card : cardPage.getContent()) {
+            array.add(getGameOutCard(card));
+        }
+        JSONObject object = ResponseData.object("total", cardPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    private JSONObject getGameOutCard(GameOutCard card) {
+        JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(card));
+        json.put("user","用户不存在");
+        json.put("phone","用户不存在");
+        User user = userDao.findAllById(card.getUserId());
+        if (user!= null) {
+            json.put("user", user.getNickname());
+            json.put("phone", user.getPhone());
+        }
+        return json;
+    }
+
+    public ResponseData deleteGameWithdrawCard(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        gameOutCardDao.deleteAllById(ids);
+        return ResponseData.success();
+    }
+
+    public ResponseData updateGameWithdrawCard(long id, String name, String bank, String card, String address, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (id < 1) return ResponseData.error("用户ID不正确!");
+        GameOutCard outCard = gameOutCardDao.findAllById(id);
+        if (outCard == null) return ResponseData.error("记录不存在");
+        name = name.replaceAll(" ", "").trim();
+        bank = bank.replaceAll(" ", "").trim().toUpperCase();
+        card = card.replaceAll(" ", "").trim().toUpperCase();
+        outCard.setName(name);
+        outCard.setBank(bank);
+        outCard.setCard(card);
+        outCard.setAddress(address);
+        outCard.setUpdateIp(ip);
+        outCard.setUpdateTime(System.currentTimeMillis());
+        gameOutCardDao.save(outCard);
+        return ResponseData.success(getGameOutCard(outCard));
+    }
+
+    public ResponseData getGameWaterList(String title, int type, long start, long end, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
+        Page<User> userPage;
+        if (StringUtils.isNotEmpty(title)) {
+            if (type == 0){
+                userPage = userDao.findAllById(new Long(title),pageable);
+            }else if (type == 1){
+                userPage = userDao.findAllByNickname("%"+title+"%",pageable);
+            }else if (type == 2){
+                userPage = userDao.findAllByUsername("%"+title+"%",pageable);
+            }else if (type == 3){
+                userPage = userDao.findAllByPhone("%"+title+"%",pageable);
+            }else {
+                userPage = userDao.findAll(pageable);
+            }
+        }else {
+            userPage = userDao.findAll(pageable);
+        }
+//        System.out.println(userPage.getContent());
+        JSONArray array = new JSONArray();
+        for (User profile : userPage.getContent()) {
+            JSONObject object = new JSONObject();
+            object.put("id",profile.getId());
+            object.put("nickname",profile.getNickname());
+            object.put("username",profile.getUsername());
+            object.put("phone",profile.getPhone());
+            object.put("addTime",profile.getAddTime());
+
+            if (start > 0 && end > 0) {
+                object.put("validBet", String.format("%.2f", gameWaterDao.getValidBet(profile.getId(),start,end) / 100D));
+                object.put("profit", String.format("%.2f", gameWaterDao.getProfit(profile.getId(),start,end) / 100D));
+                object.put("tax", String.format("%.2f", gameWaterDao.getTax(profile.getId(),start,end) / 100D));
+            } else if (start > 0){
+                object.put("validBet", String.format("%.2f", gameWaterDao.getValidBet(profile.getId(),start) / 100D));
+                object.put("profit", String.format("%.2f", gameWaterDao.getProfit(profile.getId(),start) / 100D));
+                object.put("tax", String.format("%.2f", gameWaterDao.getTax(profile.getId(),start) / 100D));
+            } else if (end > 0){
+                object.put("validBet", String.format("%.2f", gameWaterDao.getValidBetByEnd(profile.getId(),end) / 100D));
+                object.put("profit", String.format("%.2f", gameWaterDao.getProfitByEnd(profile.getId(),end) / 100D));
+                object.put("tax", String.format("%.2f", gameWaterDao.getTaxByEnd(profile.getId(),end) / 100D));
+            }else{
+                object.put("validBet", String.format("%.2f", gameWaterDao.getValidBet(profile.getId()) / 100D));
+                object.put("profit", String.format("%.2f", gameWaterDao.getProfit(profile.getId()) / 100D));
+                object.put("tax", String.format("%.2f", gameWaterDao.getTax(profile.getId()) / 100D));
+            }
+            object.put("cashIn", String.format("%.2f", gameOrderDao.getCashIn(profile.getId()) / 1D));
+            object.put("cashOut", String.format("%.2f", gameOutOrderDao.getCashOut(profile.getId()) / 1D));
+            object.put("firstTime",gameWaterDao.getFirstTime(profile.getId()));
+            object.put("lastTime",gameWaterDao.getLastTime(profile.getId()));
+            System.out.println(object);
+            array.add(object);
+        }
+        JSONObject josn = ResponseData.object("total", userPage.getTotalElements());
+        josn.put("list", array);
+        return ResponseData.success(josn);
+    }
+    public ResponseData getGameWater(long userId, long start, long end, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        User u = userDao.findAllById(userId);
+        if (u == null) return ResponseData.error("用户不存在!");
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"add_time"));
+        Page<GameWater> waterPage;
+        if (start > System.currentTimeMillis()) start = System.currentTimeMillis();
+        if (end > System.currentTimeMillis()) end = System.currentTimeMillis();
+        if (start > 0 && end > 0) {
+            waterPage = gameWaterDao.getGameWaterListById(userId,start,end,pageable);
+        } else if (start > 0){
+            waterPage = gameWaterDao.getGameWaterListByIdStart(userId, start,pageable);
+        } else if (end > 0){
+            waterPage = gameWaterDao.getGameWaterListByIdEnd(userId, end,pageable);
+        }else{
+            waterPage = gameWaterDao.getGameWaterListById(userId,pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (GameWater water : waterPage.getContent()) {
+            array.add(getGameWater(water));
+        }
+        JSONObject object = ResponseData.object("total", waterPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+    public JSONObject getGameWater(GameWater water){
+        JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(water));
+        json.put("validBet", String.format("%.2f", water.getValidBet() / 100D));
+        json.put("profit", String.format("%.2f", water.getProfit() / 100D));
+        json.put("tax", String.format("%.2f", water.getTax() / 100D));
+        json.put("balance", String.format("%.2f", water.getBalance() / 100D));
+        json.put("game","游戏已被下加");
+        Game game = gameDao.findAllById(water.getGameId());
+        if (game!= null) {
+            json.put("game", game.getName());
+        }
+        return json;
+    }
+
+    public ResponseData updateGameWater(SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        WaLiUtil.getRecords();
         return ResponseData.success();
     }
 }

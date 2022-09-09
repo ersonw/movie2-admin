@@ -116,6 +116,7 @@ public class WaLiUtil {
                     records.setTax(new Double(Double.parseDouble(taxs.get(i)) * 100).longValue());
                     records.setRecordTime(TimeUtil.strToTime(recordTimes.get(i)));
                     records.setRecordId(recordIds.get(i));
+                    records.setAddTime(System.currentTimeMillis());
                     if (detailUrls != null && i < detailUrls.size()){
                         records.setDetailUrl(detailUrls.get(i));
                     }

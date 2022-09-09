@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/game")
-@Api(value = "api", tags = "短视频接口")
+@Api(value = "api", tags = "游戏接口")
 public class GameControl {
     @Autowired
     private GameService service;
@@ -136,5 +136,54 @@ public class GameControl {
     @ApiGlobalModel(component = pData.class, value = "ids")
     public ResponseData makeupGameWithdrawOrder(@RequestBody pData data){
         return service.makeupGameWithdrawOrder(data.getIds(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getGameWithdrawCard")
+    public ResponseData getGameWithdrawCard(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "enabled", required = false,defaultValue = "false") boolean enabled,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getGameWithdrawCard(title,enabled,page,limit, SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteGameWithdrawCard")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteGameWithdrawCard(@RequestBody pData data){
+        return service.deleteGameWithdrawCard(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/updateGameWithdrawCard")
+    @ApiGlobalModel(component = pData.class, value = "name,bank,card,address,id")
+    public ResponseData updateGameWithdrawCard(@RequestBody pData data){
+        return service.updateGameWithdrawCard(data.getId(),data.getName(),data.getBank(),data.getCard(),data.getAddress(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getGameWaterList")
+    public ResponseData getGameWaterList(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "type", required = false,defaultValue = "0") int type,
+            @RequestParam(value = "start", required = false,defaultValue = "0") long start,
+            @RequestParam(value = "end", required = false,defaultValue = "0") long end,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getGameWaterList(title,type,start,end,page,limit, SysUser.getUser(user), ip);
+    }
+    @GetMapping("/getGameWater")
+    public ResponseData getGameWater(
+            @RequestParam(value = "id", required = false,defaultValue = "0") long userId,
+            @RequestParam(value = "start", required = false,defaultValue = "0") long start,
+            @RequestParam(value = "end", required = false,defaultValue = "0") long end,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getGameWater(userId,start,end,page,limit, SysUser.getUser(user), ip);
+    }
+    @GetMapping("/updateGameWater")
+    public ResponseData updateGameWater(
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.updateGameWater(SysUser.getUser(user), ip);
     }
 }
