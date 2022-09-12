@@ -191,4 +191,62 @@ public class MembershipService {
         membershipExperienceDao.deleteAllById(ids);
         return ResponseData.success();
     }
+    public JSONObject getBenefit(MembershipBenefit benefit){
+        JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(benefit));
+        return object;
+    }
+    public ResponseData getBenefitList(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
+        Page<MembershipBenefit> benefitPage;
+        if (StringUtils.isNotEmpty(title)) {
+            benefitPage = membershipBenefitDao.findAllByNameLike("%"+title+"%",pageable);
+        }else {
+            benefitPage = membershipBenefitDao.findAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (MembershipBenefit benefit : benefitPage.getContent()) {
+            array.add(getBenefit(benefit));
+        }
+        JSONObject object = ResponseData.object("total", benefitPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    public ResponseData deleteBenefit(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        membershipBenefitDao.deleteAllById(ids);
+        return ResponseData.success();
+    }
+
+    public ResponseData updateBenefit(long id, String name, String icon, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (id < 0) return ResponseData.error("记录不存在!");
+        MembershipBenefit benefit = membershipBenefitDao.findAllById(id);
+        if (benefit == null) return ResponseData.error("记录不存在");
+        name = name.replaceAll(" ", "").trim().toUpperCase();
+        benefit.setName(name);
+        benefit.setIcon(icon);
+        benefit.setUpdateTime(System.currentTimeMillis());
+        if (benefit.getAddTime() == 0)benefit.setAddTime(System.currentTimeMillis());
+        membershipBenefitDao.save(benefit);
+        return ResponseData.success(getBenefit(benefit));
+    }
+
+    public ResponseData addBenefit(String name, String icon, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        name = name.replaceAll(" ", "").trim().toUpperCase();
+        MembershipBenefit benefit = membershipBenefitDao.findAllByName(name);
+        if (benefit != null) return ResponseData.error("记录已存在");
+        benefit = new MembershipBenefit();
+        benefit.setName(name);
+        benefit.setIcon(icon);
+        benefit.setAddTime(System.currentTimeMillis());
+        benefit.setUpdateTime(System.currentTimeMillis());
+        membershipBenefitDao.save(benefit);
+        return ResponseData.success(getBenefit(benefit));
+    }
 }

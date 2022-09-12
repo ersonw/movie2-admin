@@ -67,4 +67,28 @@ public class MembershipControl {
     public ResponseData deleteMembershipListExperience(@RequestBody pData data){
         return service.deleteMembershipListExperience(data.getIds(),data.getUser(), data.getIp());
     }
+    @GetMapping("/getBenefitList")
+    public ResponseData getBenefitList(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getBenefitList(title,page,limit, SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteBenefit")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteBenefit(@RequestBody pData data){
+        return service.deleteBenefit(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/updateBenefit")
+    @ApiGlobalModel(component = pData.class, value = "name,icon,id")
+    public ResponseData updateBenefit(@RequestBody pData data){
+        return service.updateBenefit(data.getId(),data.getName(),data.getIcon(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addBenefit")
+    @ApiGlobalModel(component = pData.class, value = "name,icon")
+    public ResponseData addBenefit(@RequestBody pData data){
+        return service.addBenefit(data.getName(),data.getIcon(),data.getUser(), data.getIp());
+    }
 }

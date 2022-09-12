@@ -63,6 +63,8 @@ public  class pData  {
     private String text;
     @ApiModelProperty(name = "pic", value= "图片",required = false)
     private String pic;
+    @ApiModelProperty(name = "icon", value= "图标",required = false)
+    private String icon;
     @ApiModelProperty(name = "image", value= "图片",required = false)
     private String image;
     @ApiModelProperty(name = "url1", value= "网址链接",required = false)
