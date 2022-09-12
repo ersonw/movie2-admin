@@ -504,6 +504,7 @@ public class GameService {
                 inOrders.add(order);
             }
         }
+        gameOrderDao.saveAllAndFlush(orders);
         cashInOrderDao.saveAllAndFlush(inOrders);
         return ResponseData.success();
     }

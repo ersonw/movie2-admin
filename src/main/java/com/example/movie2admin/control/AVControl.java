@@ -291,4 +291,57 @@ public class AVControl {
     public ResponseData updateVideoConfig(@RequestBody JSONObject data){
         return service.updateVideoConfig(data);
     }
+    @GetMapping("/getDiamondConfig")
+    public ResponseData getDiamondConfig(
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getDiamondConfig(SysUser.getUser(user), ip);
+    }
+    @PostMapping("/updateDiamondConfig")
+    public ResponseData updateDiamondConfig(@RequestBody JSONObject data){
+        return service.updateDiamondConfig(data);
+    }
+    @GetMapping("/getButtonList")
+    public ResponseData getButtonList(
+            @RequestParam(value = "title", required = false,defaultValue = "0") long title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getButtonList(title,page,limit, SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteButton")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteButton(@RequestBody pData data){
+        return service.deleteButton(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/updateButton")
+    @ApiGlobalModel(component = pData.class, value = "amount,price,less,cashInId,status,id")
+    public ResponseData updateButton(@RequestBody pData data){
+        return service.updateButton(data.getId(),data.getAmount(),data.getPrice(),data.getLess(),data.getCashInId(),data.getStatus(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addButton")
+    @ApiGlobalModel(component = pData.class, value = "amount,price,less,cashInId,status")
+    public ResponseData addButton(@RequestBody pData data){
+        return service.addButton(data.getAmount(),data.getPrice(),data.getLess(),data.getCashInId(),data.getStatus(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getDiamondOrderList")
+    public ResponseData getDiamondOrderList(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getDiamondOrderList(title,page,limit, SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteDiamondOrder")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteDiamondOrder(@RequestBody pData data){
+        return service.deleteDiamondOrder(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/makeupDiamondOrder")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData makeupDiamondOrder(@RequestBody pData data){
+        return service.makeupDiamondOrder(data.getIds(),data.getUser(), data.getIp());
+    }
 }
