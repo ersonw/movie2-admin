@@ -1,6 +1,9 @@
 package com.example.movie2admin.dao;
 
 import com.example.movie2admin.entity.CashInConfig;
+import com.example.movie2admin.entity.MembershipExpired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -17,4 +20,6 @@ public interface CashInConfigDao extends JpaRepository<CashInConfig, Long>, Crud
     List<CashInConfig> findAllByStatus(int status);
     List<CashInConfig> findAllByAllowedLike(String allowed);
     List<CashInConfig> findAllByAllowedLikeAndStatus(String allowed,int status);
+
+    Page<CashInConfig> findAllByTitleLike(String s, Pageable pageable);
 }

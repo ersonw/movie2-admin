@@ -30,6 +30,14 @@ public  class pData  {
 
     @ApiModelProperty(name = "seek", value= "视频刻度",required = false)
     private long seek;
+    @ApiModelProperty(name = "original", value= "原价",required = false)
+    private long original;
+    @ApiModelProperty(name = "gameCoin", value= "游戏币",required = false)
+    private long gameCoin;
+    @ApiModelProperty(name = "experience", value= "经验值",required = false)
+    private long experience;
+    @ApiModelProperty(name = "options", value= "选择ID",required = false)
+    private List<Long> options;
 
     @ApiModelProperty(name = "id", value= "唯一ID",required = false)
     private long id;
@@ -41,8 +49,16 @@ public  class pData  {
     private int gameId;
     @ApiModelProperty(name = "game", value= "游戏",required = false)
     private String game;
+    @ApiModelProperty(name = "benefit", value= "权益",required = false)
+    private String benefit;
     @ApiModelProperty(name = "less", value= "优惠",required = false)
     private int less;
+    @ApiModelProperty(name = "level", value= "等级",required = false)
+    private int level;
+    @ApiModelProperty(name = "mini", value= "最小",required = false)
+    private int mini;
+    @ApiModelProperty(name = "max", value= "最大",required = false)
+    private int max;
 
     @ApiModelProperty(name = "duration", value= "目标ID",required = false)
     private long duration;
@@ -87,6 +103,18 @@ public  class pData  {
     private long likes;
     @ApiModelProperty(name = "title", value= "标题",required = false)
     private String title;
+    @ApiModelProperty(name = "domain", value= "域名、网址",required = false)
+    private String domain;
+    @ApiModelProperty(name = "mchId", value= "商户ID",required = false)
+    private String mchId;
+    @ApiModelProperty(name = "secretKey", value= "对接密钥",required = false)
+    private String secretKey;
+    @ApiModelProperty(name = "callbackUrl", value= "同步回调URL",required = false)
+    private String callbackUrl;
+    @ApiModelProperty(name = "notifyUrl", value= "异步回调URL",required = false)
+    private String notifyUrl;
+    @ApiModelProperty(name = "errorUrl", value= "错误回调URL",required = false)
+    private String errorUrl;
     @ApiModelProperty(name = "price", value= "金额",required = false)
     private double price;
 

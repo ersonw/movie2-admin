@@ -88,6 +88,7 @@ public class DiamondService {
         balance.setUserId(user.getId());
         balance.setText("在线充值");
         userBalanceDiamondDao.save(balance);
+        if (StringUtils.isEmpty(inOrder.getTotalFee())) inOrder.setTotalFee("0.0");
         UserConsume consume = new UserConsume(user.getId(), new Double(inOrder.getTotalFee()).longValue(),"在线充值钻石"+order.getAmount(),1);
         userConsumeDao.saveAndFlush(consume);
         return true;

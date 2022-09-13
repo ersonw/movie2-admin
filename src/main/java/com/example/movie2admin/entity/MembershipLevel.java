@@ -16,7 +16,7 @@ public class MembershipLevel {
     @Id
     @GeneratedValue
     private long id;
-    private long level;
+    private int level;
     private long experience;
     private long addTime;
     private long updateTime;

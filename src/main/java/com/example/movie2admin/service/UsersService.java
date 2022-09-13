@@ -70,8 +70,8 @@ public class UsersService {
     public boolean getMember(long userId){
         return getExpired(userId) > System.currentTimeMillis();
     }
-    public long getMemberLevel(long userId){
-        long level =0;
+    public int getMemberLevel(long userId){
+        int level =0;
         long experience = membershipExperienceDao.getAllByUserId(userId);
         long experienced = 0;
         while (experience > experienced){
@@ -89,7 +89,7 @@ public class UsersService {
         return level;
     }
     public long getExperience(long userId){
-        long level =0;
+        int level =0;
         long experience = membershipExperienceDao.getAllByUserId(userId);
         long experienced = 0;
         while (experience > experienced){
