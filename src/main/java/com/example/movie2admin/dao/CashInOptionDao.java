@@ -21,4 +21,6 @@ public interface CashInOptionDao extends JpaRepository<CashInOption, Long>, Crud
     CashInOption findAllByName(String s);
 
     Page<CashInOption> findAllByNameLike(String s, Pageable pageable);
+
+    CashInOption findAllByCode(String code);
 }

@@ -20,4 +20,6 @@ public interface VideoPayRecordDao extends JpaRepository<VideoPayRecord, Long>, 
     @Query(value = "DELETE FROM `video_pay_record` WHERE pay_id = :id",nativeQuery = true)
     @Modifying
     void deleteAllByPay(long id);
+
+    Long countAllByUserId(long id);
 }

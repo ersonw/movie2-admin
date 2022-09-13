@@ -1,5 +1,6 @@
 package com.example.movie2admin.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.example.movie2admin.dao.*;
 import com.example.movie2admin.data.ResponseData;
@@ -9,6 +10,10 @@ import com.example.movie2admin.util.TimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,6 +39,22 @@ public class UsersService {
     private MembershipExpiredDao membershipExpiredDao;
     @Autowired
     private UserFollowDao userFollowDao;
+    @Autowired
+    private GameOrderDao gameOrderDao;
+    @Autowired
+    private MembershipOrderDao membershipOrderDao;
+    @Autowired
+    private DiamondOrderDao diamondOrderDao;
+    @Autowired
+    private CoinOrderDao coinOrderdao;
+    @Autowired
+    private CashOrderDao cashOrderDao;
+    @Autowired
+    private ShortVideoDao shortVideoDao;
+    @Autowired
+    private VideoPayRecordDao videoPayRecordDao;
+    @Autowired
+    private GameOutOrderDao gameOutOrderDao;
 
     private static long FAIL_LOGIN_TIMES = 6;
 
@@ -184,5 +205,77 @@ public class UsersService {
             object.put("follow", userFollowDao.findAllByUserIdAndToUserId(userId, user.getId()) != null);
         }
         return object;
+    }
+
+    public ResponseData getUserList(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
+        Page<User> userPage;
+        if (StringUtils.isNotEmpty(title)) {
+            userPage = userDao.findAllByUsernameOrNicknameOrPhone("%"+title+"%","%"+title+"%","%"+title+"%",pageable);
+        }else {
+            userPage = userDao.findAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (User users : userPage.getContent()) {
+            array.add(getUsers(users));
+        }
+        JSONObject object = ResponseData.object("total", userPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+
+    private Object getUsers(User users) {
+        JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(users));
+        double in = gameOrderDao.getAllByUserId(users.getId());
+        in += membershipOrderDao.getAllByUserId(users.getId());
+        in += coinOrderdao.getAllByUserId(users.getId());
+        in += diamondOrderDao.getAllByUserId(users.getId());
+        in += cashOrderDao.getAllByUserId(users.getId());
+        double gameOut = gameOutOrderDao.getAllByUserId(users.getId());
+
+        object.put("in", String.format("%.2f", in * 1D));
+        object.put("gameOut", String.format("%.2f", gameOut * 1D));
+        object.put("pays", videoPayRecordDao.countAllByUserId(users.getId()));
+        object.put("short", shortVideoDao.countAllByUserId(users.getId()));
+        return object;
+    }
+
+    public ResponseData deleteUser(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        return ResponseData.error("暂未开发!");
+    }
+
+    public ResponseData freezeUser(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<User> userList = userDao.findAllById(ids);
+        for (int i = 0; i < userList.size(); i++) {
+            userList.get(i).setStatus(-1);
+        }
+        userDao.saveAllAndFlush(userList);
+        JSONArray array = new JSONArray();
+        for (User users : userList) {
+            authDao.popUser(users);
+            array.add(getUsers(users));
+        }
+        return ResponseData.success(array);
+    }
+
+    public ResponseData unfreezeUser(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<User> userList = userDao.findAllById(ids);
+        for (int i = 0; i < userList.size(); i++) {
+            userList.get(i).setStatus(1);
+        }
+        userDao.saveAllAndFlush(userList);
+        JSONArray array = new JSONArray();
+        for (User users : userList) {
+            authDao.popUser(users);
+            array.add(getUsers(users));
+        }
+        return ResponseData.success(array);
     }
 }

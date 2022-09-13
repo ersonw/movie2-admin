@@ -27,4 +27,5 @@ public interface UserDao extends JpaRepository<User, Long>, CrudRepository<User,
     Page<User> findAllByUsername(String s, Pageable pageable);
 
     Page<User> findAllByPhone(String s, Pageable pageable);
+    Page<User> findAllByUsernameOrNicknameOrPhone(String username, String nickname,String phone,Pageable pageable);
 }

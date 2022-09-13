@@ -28,4 +28,7 @@ public interface GameOutOrderDao extends JpaRepository<GameOutOrder, Long>, Crud
     Long getRecentWater(long id);
     @Query(value = "SELECT IFNULL( SUM(amount), 0 ) FROM game_out_order WHERE status=1 AND user_id=:id",nativeQuery = true)
     Long getCashOut(long id);
+
+    @Query(value = "SELECT IFNULL( SUM(amount), 0.0 ) FROM game_out_order WHERE status = 1 AND user_id=:id",nativeQuery = true)
+    Double getAllByUserId(long id);
 }

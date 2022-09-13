@@ -9,10 +9,10 @@ import javax.persistence.*;
 @Setter
 @Getter
 @Entity
-@Table(name = "cash_order")
+@Table(name = "coin_order")
 @Cacheable
 @ToString(includeFieldNames = true)
-public class CashOrder {
+public class CoinOrder {
     @Id
     @GeneratedValue
     private long id;

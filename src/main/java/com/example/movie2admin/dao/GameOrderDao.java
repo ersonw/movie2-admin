@@ -17,4 +17,6 @@ public interface GameOrderDao extends JpaRepository<GameOrder, Long>, CrudReposi
     GameOrder findAllById(long id);
     @Query(value = "SELECT IFNULL( SUM(amount), 0 ) FROM game_order WHERE user_id=:id",nativeQuery = true)
     Long getCashIn(long id);
+    @Query(value = "SELECT IFNULL( SUM(cio.total_fee), 0.0 ) FROM game_order AS go1 INNER JOIN cash_in_order as cio ON cio.order_no=go1.order_no AND cio.status = 1 WHERE go1.user_id=:id",nativeQuery = true)
+    Double getAllByUserId(long id);
 }

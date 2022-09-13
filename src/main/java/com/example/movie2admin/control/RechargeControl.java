@@ -49,4 +49,19 @@ public class RechargeControl {
             @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
         return service.getOptionList(title,page,limit, SysUser.getUser(user), ip);
     }
+    @PostMapping("/deleteOption")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteOption(@RequestBody pData data){
+        return service.deleteOption(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/updateOption")
+    @ApiGlobalModel(component = pData.class, value = "name,icon,code,status,id")
+    public ResponseData updateOption(@RequestBody pData data){
+        return service.updateOption(data.getId(),data.getName(),data.getIcon(),data.getCode(),data.getStatus(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addOption")
+    @ApiGlobalModel(component = pData.class, value = "name,icon,code,status")
+    public ResponseData addOption(@RequestBody pData data){
+        return service.addOption(data.getName(),data.getIcon(),data.getCode(),data.getStatus(),data.getUser(), data.getIp());
+    }
 }

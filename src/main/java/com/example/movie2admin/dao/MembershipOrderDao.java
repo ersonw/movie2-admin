@@ -17,4 +17,7 @@ public interface MembershipOrderDao extends JpaRepository<MembershipOrder, Long>
     Long getOrders(long id);
 
     Page<MembershipOrder> findAllByOrderNoLike(String s, Pageable pageable);
+
+    @Query(value = "SELECT IFNULL( SUM(cio.total_fee), 0.0 ) FROM membership_order AS mo INNER JOIN cash_in_order as cio ON cio.order_no=mo.order_no AND cio.status = 1 WHERE mo.user_id=:id",nativeQuery = true)
+    Double getAllByUserId(long id);
 }

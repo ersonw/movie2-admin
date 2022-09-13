@@ -80,7 +80,7 @@ public class RechargeService {
         if (config.getAddTime() == 0)config.setAddTime(System.currentTimeMillis());
         config.setUpdateTime(System.currentTimeMillis());
         cashInConfigDao.save(config);
-        return ResponseData.success();
+        return ResponseData.success(getConfig(config));
     }
 
     private List<Long> getAllowed(String allowed) {
@@ -149,5 +149,49 @@ public class RechargeService {
     public JSONObject getOption(CashInOption option){
         JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(option));
         return object;
+    }
+
+    public ResponseData deleteOption(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        cashInOptionDao.deleteAllById(ids);
+        return ResponseData.success();
+    }
+
+    public ResponseData updateOption(long id, String name, String icon, String code, int status, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (id < 1) return ResponseData.error("记录不存在!");
+        if (StringUtils.isEmpty(name) || StringUtils.isEmpty(icon) || StringUtils.isEmpty(code)) return ResponseData.error("必要参数不可为空");
+        name = name.replaceAll(" ", "").trim().toUpperCase();
+        code = code.replaceAll(" ","").trim();
+        CashInOption option = cashInOptionDao.findAllByCode(code);
+        if (option!= null && option.getId() != id) return ResponseData.error("目标代码已存在!");
+        option = cashInOptionDao.findAllById(id);
+        if (option == null) return ResponseData.error("记录不存在!");
+        option.setName(name);
+        option.setIcon(icon);
+        option.setCode(code);
+        option.setStatus(status);
+        option.setAddTime(System.currentTimeMillis());
+        option.setUpdateTime(System.currentTimeMillis());
+        cashInOptionDao.save(option);
+        return ResponseData.success(getOption(option));
+    }
+
+    public ResponseData addOption(String name, String icon, String code, int status, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        if (StringUtils.isEmpty(name) || StringUtils.isEmpty(icon) || StringUtils.isEmpty(code)) return ResponseData.error("必要参数不可为空");
+        name = name.replaceAll(" ", "").trim().toUpperCase();
+        code = code.replaceAll(" ","").trim();
+        CashInOption option = cashInOptionDao.findAllByCode(code);
+        if (option!= null) return ResponseData.error("目标代码已存在!");
+        option = new CashInOption();
+        option.setName(name);
+        option.setIcon(icon);
+        option.setCode(code);
+        option.setStatus(status);
+        if (option.getAddTime() == 0)option.setAddTime(System.currentTimeMillis());
+        option.setUpdateTime(System.currentTimeMillis());
+        cashInOptionDao.save(option);
+        return ResponseData.success(getOption(option));
     }
 }
