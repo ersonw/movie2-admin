@@ -675,10 +675,10 @@ public class MembershipService {
         if (StringUtils.isEmpty(u)) return ResponseData.error("");
         SysUser user = SysUser.getUser(u);
         if (user == null) return ResponseData.error("");
-        membershipConfigDao.saveAllAndFlush(getDiamondUpdateConfig(data));
+        membershipConfigDao.saveAllAndFlush(getUpdateConfig(data));
         return ResponseData.success();
     }
-    public List<MembershipConfig> getDiamondUpdateConfig(JSONObject data){
+    public List<MembershipConfig> getUpdateConfig(JSONObject data){
         List<MembershipConfig> configs = new ArrayList<>();
         JSONObject object = new JSONObject();
         for (String key : data.keySet()) {
