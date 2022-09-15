@@ -29,10 +29,5 @@ public interface UserDao extends JpaRepository<User, Long>, CrudRepository<User,
 
     Page<User> findAllByPhone(String s, Pageable pageable);
     Page<User> findAllByUsernameOrNicknameOrPhone(String username, String nickname,String phone,Pageable pageable);
-    @Query(value = "SELECT usr.*,(SELECT COUNT(*) FROM user_spread_record WHERE share_user_id=u.id) AS c FROM `user` as u INNER JOIN user_spread_record AS usr ON usr.share_user_id=u.id WHERE u.id=:title GROUP BY usr.share_user_id ORDER BY c DESC",nativeQuery = true)
-    Page<UserSpreadRecord> getUsersSpreadRecordList(long title, Pageable pageable);
-    @Query(value = "SELECT usr.*,(SELECT COUNT(*) FROM user_spread_record WHERE share_user_id=u.id) AS c FROM `user` as u INNER JOIN user_spread_record AS usr ON usr.share_user_id=u.id WHERE u.nickname LIKE :title OR u.username LIKE :title OR u.phone LIKE :title GROUP BY usr.share_user_id ORDER BY c DESC",nativeQuery = true)
-    Page<UserSpreadRecord> getUsersSpreadRecordList(String title, Pageable pageable);
-    @Query(value = "SELECT usr.*,(SELECT COUNT(*) FROM user_spread_record WHERE share_user_id=u.id) AS c FROM `user` as u INNER JOIN user_spread_record AS usr ON usr.share_user_id=u.id GROUP BY usr.share_user_id ORDER BY c DESC",nativeQuery = true)
-    Page<UserSpreadRecord> getUsersSpreadRecordList(Pageable pageable);
+
 }

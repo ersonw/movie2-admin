@@ -9,4 +9,5 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Repository
 public interface UserSpreadConfigDao extends JpaRepository<UserSpreadConfig, Long>, CrudRepository<UserSpreadConfig, Long> {
+    UserSpreadConfig findByName(String key);
 }

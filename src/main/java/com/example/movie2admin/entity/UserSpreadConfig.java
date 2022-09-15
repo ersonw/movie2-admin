@@ -13,6 +13,13 @@ import javax.persistence.*;
 @Cacheable
 @ToString(includeFieldNames = true)
 public class UserSpreadConfig {
+    public UserSpreadConfig() {}
+    public UserSpreadConfig(String name, String val) {
+        this.name = name;
+        this.val = val;
+        this.addTime = System.currentTimeMillis();
+        this.updateTime = System.currentTimeMillis();
+    }
     @Id
     @GeneratedValue
     private long id;

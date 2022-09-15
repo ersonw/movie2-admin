@@ -67,6 +67,8 @@ public class UsersService {
     private AgentRebateDao agentRebateDao;
     @Autowired
     private UserSpreadRecordDao userSpreadRecordDao;
+    @Autowired
+    private UserSpreadConfigDao userSpreadConfigDao;
 
     private static long FAIL_LOGIN_TIMES = 6;
 
@@ -483,23 +485,21 @@ public class UsersService {
         return ResponseData.success(array);
     }
 
-    public ResponseData getUsersSpreadRecordList(String title, long start, long end, int page, int limit, SysUser user, String ip) {
+    public ResponseData getUsersSpreadRecordList(String title, int page, int limit, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
         page--;
         if (page < 0) page = 0;
         if (limit < 0) limit = 20;
         Pageable pageable = PageRequest.of(page,limit);
         Page<UserSpreadRecord> recordPage;
-        if (start > System.currentTimeMillis()) start = System.currentTimeMillis();
-        if (end > System.currentTimeMillis()) end = System.currentTimeMillis();
         if (StringUtils.isNotEmpty(title)) {
             if (ToolsUtil.isNumberString(title)){
-                recordPage = userDao.getUsersSpreadRecordList(new Long(title),pageable);
+                recordPage = userSpreadRecordDao.getUsersSpreadRecordList(new Long(title),pageable);
             }else{
-                recordPage = userDao.getUsersSpreadRecordList("%"+title+"%",pageable);
+                recordPage = userSpreadRecordDao.getUsersSpreadRecordList("%"+title+"%",pageable);
             }
         }else {
-            recordPage = userDao.getUsersSpreadRecordList(pageable);
+            recordPage = userSpreadRecordDao.getUsersSpreadRecordList(pageable);
         }
 //        System.out.println(userPage.getContent());
         JSONArray array = new JSONArray();
@@ -518,7 +518,8 @@ public class UsersService {
             object.put("phone",profile.getPhone());
             object.put("registerTime",profile.getAddTime());
             object.put("registerIP",profile.getRegisterIp());
-            object.put("records", userSpreadRecordDao.countAllByShareUserId(profile.getId()));
+            object.put("record", userSpreadRecordDao.countAllByShareUserId(profile.getId()));
+//            object.put("records", userSpreadRecordDao.getAllByShareUserId(profile.getId()));
             object.put("rebate", String.format("%.2f", rebate));
             array.add(object);
         }
@@ -558,13 +559,15 @@ public class UsersService {
     }
 
     private Object getUserSpreadRecord(UserSpreadRecord record) {
+//        System.out.println(record);
         JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(record));
-        User profile = userDao.findAllById(record.getShareUserId());
+        User profile = userDao.findAllById(record.getUserId());
         Double rebate = userSpreadRebateDao.getUserSpreadRecord(record.getShareUserId(),record.getUserId());
         Double consume = userConsumeDao.getUserSpreadRecord(record.getUserId());
         object.put("nickname",profile.getNickname());
         object.put("username",profile.getUsername());
         object.put("phone",profile.getPhone());
+        object.put("registerIP",profile.getRegisterIp());
         object.put("record",userSpreadRecordDao.countAllByShareUserId(record.getUserId()));
         object.put("rebate", String.format("%.2f", rebate));
         object.put("consume", String.format("%.2f", consume));
@@ -575,5 +578,52 @@ public class UsersService {
         if (user == null) return ResponseData.error(201);
         userSpreadRecordDao.deleteAllById(ids);
         return ResponseData.success();
+    }
+    public ResponseData getSpreadConfig(SysUser user, String ip) {
+        if (user == null) return ResponseData.error("");
+        List<UserSpreadConfig> configs = userSpreadConfigDao.findAll();
+        JSONObject object = new JSONObject();
+        for (UserSpreadConfig config: configs) {
+            object.put(config.getName(), config.getVal());
+        }
+        return ResponseData.success(object);
+    }
+
+    public ResponseData updateSpreadConfig(JSONObject data) {
+        String u = data.getString("user");
+        if (StringUtils.isEmpty(u)) return ResponseData.error("");
+        SysUser user = SysUser.getUser(u);
+        if (user == null) return ResponseData.error("");
+        userSpreadConfigDao.saveAllAndFlush(getUpdateSpreadConfig(data));
+        return ResponseData.success();
+    }
+    public List<UserSpreadConfig> getUpdateSpreadConfig(JSONObject data){
+        List<UserSpreadConfig> configs = new ArrayList<>();
+        JSONObject object = new JSONObject();
+        for (String key : data.keySet()) {
+            if (
+                    data.get(key) != null && !key.equals("ip") &&
+                            data.get(key) != null && !key.equals("isWeb") &&
+                            data.get(key) != null && !key.equals("serverName") &&
+                            data.get(key) != null && !key.equals("serverPort") &&
+                            data.get(key) != null && !key.equals("uri") &&
+                            data.get(key) != null && !key.equals("url") &&
+                            data.get(key) != null && !key.equals("schema") &&
+                            data.get(key) != null && !key.equals("user")
+            ){
+                object.put(key, data.get(key));
+            }
+        }
+        for (String key : object.keySet()) {
+            UserSpreadConfig config = userSpreadConfigDao.findByName(key);
+            if (config == null){
+                config = new UserSpreadConfig(key, object.getString(key));
+            }else{
+                config.setVal(object.getString(key));
+                config.setUpdateTime(System.currentTimeMillis());
+            }
+            configs.add(config);
+        }
+        return configs;
     }
 }

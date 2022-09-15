@@ -87,13 +87,11 @@ public class UsersControl {
     @GetMapping("/getUsersSpreadRecordList")
     public ResponseData getUsersSpreadRecordList(
             @RequestParam(value = "title", required = false,defaultValue = "") String title,
-            @RequestParam(value = "start", required = false,defaultValue = "0") long start,
-            @RequestParam(value = "end", required = false,defaultValue = "0") long end,
             @RequestParam(value = "page", required = false,defaultValue = "1") int page,
             @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
             @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
             @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
-        return service.getUsersSpreadRecordList(title,start,end,page,limit, SysUser.getUser(user), ip);
+        return service.getUsersSpreadRecordList(title,page,limit, SysUser.getUser(user), ip);
     }
     @GetMapping("/getUsersSpreadRecordUserList")
     public ResponseData getUsersSpreadRecordUserList(
@@ -110,5 +108,15 @@ public class UsersControl {
     @ApiGlobalModel(component = pData.class, value = "ids")
     public ResponseData deleteUsersSpreadRecordUserList(@RequestBody pData data){
         return service.deleteUsersSpreadRecordUserList(data.getIds(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getSpreadConfig")
+    public ResponseData getSpreadConfig(
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getSpreadConfig(SysUser.getUser(user), ip);
+    }
+    @PostMapping("/updateSpreadConfig")
+    public ResponseData updateSpreadConfig(@RequestBody JSONObject data){
+        return service.updateSpreadConfig(data);
     }
 }
