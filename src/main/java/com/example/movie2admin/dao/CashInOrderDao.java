@@ -29,4 +29,10 @@ public interface CashInOrderDao extends JpaRepository<CashInOrder, Long>, CrudRe
     @Query(value = "DELETE diamond_order FROM diamond_order LEFT JOIN cash_in_order ON diamond_order.order_no=cash_in_order.order_no WHERE cash_in_order.id IS NULL",nativeQuery = true)
     @Modifying
     void deleteAllByDiamondOrder();
+    @Query(value = "SELECT IFNULL( SUM(total_fee), 0 ) FROM cash_in_order WHERE status=1",nativeQuery = true)
+    Double getAll();
+    @Query(value = "SELECT IFNULL( SUM(total_fee), 0 ) FROM cash_in_order WHERE status=1 AND add_time > :start",nativeQuery = true)
+    Double getAll(long start);
+    @Query(value = "SELECT IFNULL( SUM(total_fee), 0 ) FROM cash_in_order WHERE status=1 AND add_time > :start AND add_time < :end",nativeQuery = true)
+    Double getAll(long start, long end);
 }

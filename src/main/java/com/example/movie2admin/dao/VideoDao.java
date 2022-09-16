@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Repository
 public interface VideoDao extends JpaRepository<Video, Long>, CrudRepository<Video, Long> {
+    Long countAllByAddTimeGreaterThanEqualAndAddTimeLessThanEqual(long start, long end);
+    Long countAllByAddTimeGreaterThanEqual(long start);
     Video findAllByShareId(String shareId);
     Video findAllById(long id);
     Page<Video> findAllByTitle(String title, Pageable pageable);

@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Repository
 public interface MembershipExpiredDao extends JpaRepository<MembershipExpired, Long>, CrudRepository<MembershipExpired, Long> {
+    Long countAllByAddTimeGreaterThanEqualAndAddTimeLessThanEqual(long start, long end);
+    Long countAllByAddTimeGreaterThanEqual(long start);
     MembershipExpired findAllById(Long id);
     MembershipExpired findAllByUserId(Long userId);
     @Query(value = "SELECT me.* FROM user AS u INNER JOIN membership_expired AS me ON u.id=me.id WHERE u.nickname LIKE :title",nativeQuery = true)

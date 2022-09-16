@@ -15,6 +15,9 @@ import java.util.List;
 @Transactional
 @Repository
 public interface ShortVideoDao extends JpaRepository<ShortVideo, Long>, CrudRepository<ShortVideo, Long> {
+    Long countAllByAddTimeGreaterThanEqualAndAddTimeLessThanEqual(long start, long end);
+    Long countAllByAddTimeGreaterThanEqual(long start);
+    Long countAllByStatus(int status);
     ShortVideo findAllById(Long videoId);
     Long countAllByUserId(long userId);
     Long countAllByUserIdAndStatus(long userId, int status);

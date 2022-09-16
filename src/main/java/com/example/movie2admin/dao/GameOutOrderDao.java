@@ -31,4 +31,11 @@ public interface GameOutOrderDao extends JpaRepository<GameOutOrder, Long>, Crud
 
     @Query(value = "SELECT IFNULL( SUM(amount), 0.0 ) FROM game_out_order WHERE status = 1 AND user_id=:id",nativeQuery = true)
     Double getAllByUserId(long id);
+    @Query(value = "SELECT IFNULL( SUM(amount), 0.0 ) FROM game_out_order WHERE status = 1",nativeQuery = true)
+    Double getAll();
+    @Query(value = "SELECT IFNULL( SUM(amount), 0.0 ) FROM game_out_order WHERE status = 1 AND add_time > :start",nativeQuery = true)
+    Double getAll(long start);
+    @Query(value = "SELECT IFNULL( SUM(amount), 0.0 ) FROM game_out_order WHERE status = 1 AND add_time > :start AND add_time < :end",nativeQuery = true)
+    Double getAll(long start, long end);
+    Long countAllByStatus(int status);
 }

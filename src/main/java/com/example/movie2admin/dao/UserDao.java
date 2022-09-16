@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Repository
 public interface UserDao extends JpaRepository<User, Long>, CrudRepository<User, Long> {
+    Long countAllByAddTimeGreaterThanEqualAndAddTimeLessThanEqual(long start, long end);
+    Long countAllByAddTimeGreaterThanEqual(long start);
     User findAllById(long id);
     Page<User> findAllById(long id, Pageable pageable);
 
