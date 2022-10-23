@@ -69,6 +69,8 @@ public class UsersService {
     private UserSpreadRecordDao userSpreadRecordDao;
     @Autowired
     private UserSpreadConfigDao userSpreadConfigDao;
+    @Autowired
+    private UserShareConfigDao userShareConfigDao;
 
     private static long FAIL_LOGIN_TIMES = 6;
 
@@ -618,6 +620,53 @@ public class UsersService {
             UserSpreadConfig config = userSpreadConfigDao.findByName(key);
             if (config == null){
                 config = new UserSpreadConfig(key, object.getString(key));
+            }else{
+                config.setVal(object.getString(key));
+                config.setUpdateTime(System.currentTimeMillis());
+            }
+            configs.add(config);
+        }
+        return configs;
+    }
+    public ResponseData getShareConfig(SysUser user, String ip) {
+        if (user == null) return ResponseData.error("");
+        List<UserShareConfig> configs = userShareConfigDao.findAll();
+        JSONObject object = new JSONObject();
+        for (UserShareConfig config: configs) {
+            object.put(config.getName(), config.getVal());
+        }
+        return ResponseData.success(object);
+    }
+
+    public ResponseData updateShareConfig(JSONObject data) {
+        String u = data.getString("user");
+        if (StringUtils.isEmpty(u)) return ResponseData.error("");
+        SysUser user = SysUser.getUser(u);
+        if (user == null) return ResponseData.error("");
+        userShareConfigDao.saveAllAndFlush(getUpdateShareConfig(data));
+        return ResponseData.success();
+    }
+    public List<UserShareConfig> getUpdateShareConfig(JSONObject data){
+        List<UserShareConfig> configs = new ArrayList<>();
+        JSONObject object = new JSONObject();
+        for (String key : data.keySet()) {
+            if (
+                    data.get(key) != null && !key.equals("ip") &&
+                            data.get(key) != null && !key.equals("isWeb") &&
+                            data.get(key) != null && !key.equals("serverName") &&
+                            data.get(key) != null && !key.equals("serverPort") &&
+                            data.get(key) != null && !key.equals("uri") &&
+                            data.get(key) != null && !key.equals("url") &&
+                            data.get(key) != null && !key.equals("schema") &&
+                            data.get(key) != null && !key.equals("user")
+            ){
+                object.put(key, data.get(key));
+            }
+        }
+        for (String key : object.keySet()) {
+            UserShareConfig config = userShareConfigDao.findByName(key);
+            if (config == null){
+                config = new UserShareConfig(key, object.getString(key));
             }else{
                 config.setVal(object.getString(key));
                 config.setUpdateTime(System.currentTimeMillis());

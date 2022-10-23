@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.example.movie2admin.dao.*;
 import com.example.movie2admin.data.ResponseData;
 import com.example.movie2admin.entity.*;
+import com.example.movie2admin.util.EPayUtil;
 import com.example.movie2admin.util.WaLiUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +54,8 @@ public class MembershipService {
     private GameFundsDao gameFundsDao;
     @Autowired
     private UserConsumeDao userConsumeDao;
+    @Autowired
+    private AuthDao authDao;
 
     public boolean getConfigBool(String name) {
         return getConfigLong(name) > 0;
@@ -134,6 +137,7 @@ public class MembershipService {
 
     public ResponseData getMembershipListOrder(long userId, long start, long end, int page, int limit, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
+        authDao.popInfo(EPayUtil.MEMBERSHIP_ORDER);
         page--;
         if (page < 0) page = 0;
         if (limit < 0) limit = 20;
@@ -420,7 +424,7 @@ public class MembershipService {
         return ResponseData.success();
     }
 
-    public ResponseData updateButton(long id, long amount, Double price, long original, long gameCoin, long experience, long cashInId, int status, SysUser user, String ip) {
+    public ResponseData updateButton(String name,long id, long amount, Double price, long original, long gameCoin, long experience, long cashInId, int status, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
         MembershipButton button = membershipButtonDao.findAllById(id);
         if (button == null) return ResponseData.error("按钮不存在");
@@ -430,6 +434,8 @@ public class MembershipService {
         }else{
             cashInId = 0;
         }
+        name= name.replaceAll(" ", "").trim();
+        button.setName(name);
         button.setAmount(amount);
         button.setPrice(price.longValue());
         button.setOriginal(original);
@@ -500,6 +506,7 @@ public class MembershipService {
         }
         JSONObject object = ResponseData.object("total", orderPage.getTotalElements());
         object.put("list", array);
+        authDao.popInfo(EPayUtil.MEMBERSHIP_ORDER);
         return ResponseData.success(object);
     }
 

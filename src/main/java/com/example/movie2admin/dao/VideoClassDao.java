@@ -1,6 +1,8 @@
 package com.example.movie2admin.dao;
 
 import com.example.movie2admin.entity.VideoClass;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +16,7 @@ import java.util.List;
 @Repository
 public interface VideoClassDao extends JpaRepository<VideoClass, Long>, CrudRepository<VideoClass, Long> {
     VideoClass findAllByName(String name);
+    Page<VideoClass> findAllByName(String name, Pageable pageable);
     VideoClass findAllById( long id );
     @Modifying
     @Query(value = "SELECT vc.* FROM (SELECT * FROM `video` WHERE status=:status AND vod_class > 0 GROUP BY `vod_class`) v LEFT JOIN `video_class` vc ON v.vod_class=vc.id ", nativeQuery = true)

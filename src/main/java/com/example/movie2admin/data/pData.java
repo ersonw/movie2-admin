@@ -47,6 +47,8 @@ public  class pData  {
     private long cashInId;
     @ApiModelProperty(name = "gameId", value= "游戏ID",required = false)
     private int gameId;
+    @ApiModelProperty(name = "px", value= "排序",required = false)
+    private int px;
     @ApiModelProperty(name = "game", value= "游戏",required = false)
     private String game;
     @ApiModelProperty(name = "benefit", value= "权益",required = false)

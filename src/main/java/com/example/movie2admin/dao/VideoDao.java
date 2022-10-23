@@ -10,6 +10,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Transactional
 @Repository
 public interface VideoDao extends JpaRepository<Video, Long>, CrudRepository<Video, Long> {
@@ -90,4 +92,8 @@ public interface VideoDao extends JpaRepository<Video, Long>, CrudRepository<Vid
             "LEFT JOIN video_scale as svs ON svs.video_id=vc.id \n" +
             "WHERE vc.id=:id", nativeQuery = true)
     void removeAllById(long id);
+
+    List<Video> findAllByVodClass(Long id);
+
+    Long countAllByVodClass(long id);
 }

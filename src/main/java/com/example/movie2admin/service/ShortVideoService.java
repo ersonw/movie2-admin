@@ -7,6 +7,7 @@ import com.example.movie2admin.data.OssConfig;
 import com.example.movie2admin.data.ResponseData;
 import com.example.movie2admin.data.ShortVideoFile;
 import com.example.movie2admin.entity.*;
+import com.example.movie2admin.util.EPayUtil;
 import io.minio.MinioClient;
 import io.minio.ObjectStat;
 import io.minio.errors.*;
@@ -57,6 +58,8 @@ public class ShortVideoService {
     private UserDao userDao;
     @Autowired
     private UsersService usersService;
+    @Autowired
+    private AuthDao authDao;
 
     public ResponseData getVideoList(String title, int page, int limit, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
@@ -232,6 +235,7 @@ public class ShortVideoService {
 
     public ResponseData getAuditVideoList(int page, int limit, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
+        authDao.popInfo(7);
         page--;
         if (page < 0) page = 0;
         if (limit < 0) limit = 20;
@@ -249,6 +253,7 @@ public class ShortVideoService {
     public ResponseData getAuditVideo(SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
         ShortVideo video = shortVideoDao.getAuditVideo();
+        authDao.popInfo(7);
         return ResponseData.success(getShortVideo(video));
     }
 

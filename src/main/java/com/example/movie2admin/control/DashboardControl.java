@@ -17,6 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class DashboardControl {
     @Autowired
     private DashboardService service;
+    @GetMapping("/info")
+    public ResponseData info(){
+        return service.info();
+    }
     @GetMapping("/getAll")
     public ResponseData getAll(
             @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,

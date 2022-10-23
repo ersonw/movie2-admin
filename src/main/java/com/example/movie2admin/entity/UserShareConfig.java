@@ -9,14 +9,14 @@ import javax.persistence.*;
 @Setter
 @Getter
 @Entity
-@Table(name = "video_concentration")
+@Table(name = "user_share_config")
 @Cacheable
 @ToString(includeFieldNames = true)
-public class VideoConcentration {
-    public VideoConcentration(){}
-    public VideoConcentration(String name, int px){
-        this.px = px;
+public class UserShareConfig {
+    public UserShareConfig() {}
+    public UserShareConfig(String name, String val) {
         this.name = name;
+        this.val = val;
         this.addTime = System.currentTimeMillis();
         this.updateTime = System.currentTimeMillis();
     }
@@ -24,7 +24,7 @@ public class VideoConcentration {
     @GeneratedValue
     private long id;
     private String name;
-    private int px;
+    private String val;
     private long addTime;
     private long updateTime;
 }

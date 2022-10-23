@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.example.movie2admin.dao.*;
 import com.example.movie2admin.data.ResponseData;
 import com.example.movie2admin.entity.*;
+import com.example.movie2admin.util.EPayUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,8 @@ public class AVService {
     private CashInOrderDao cashInOrderDao;
     @Autowired
     private DiamondService diamondService;
+    @Autowired
+    private AuthDao authDao;
 
     public boolean getConfigBool(String name){
         return getConfigLong(name) > 0;
@@ -99,27 +102,36 @@ public class AVService {
         }
         JSONArray array = new JSONArray();
         for (Video video : videoPage.getContent()) {
-            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(video));
-            VideoClass videoClass = videoClassDao.findAllById(video.getVodClass());
-            if (videoClass != null) {
-                json.put("class", videoClass.getName());
-            }
-            VideoPay pay = videoPayDao.findAllByVideoId(video.getId());
-            if (pay != null) {
-                json.put("price", pay.getAmount());
-            }else {
-                json.put("price",0);
-            }
-            json.put("like", videoLikeDao.countAllByVideoId(video.getId()));
-            json.put("play",videoPlayDao.countAllByVideoId(video.getId()));
-            json.put("scale",new Double(videoPlayDao.getScale(video.getId()) / videoScaleDao.countAllByVideoId(video.getId()) * 100).longValue());
-            array.add(json);
+            array.add(getVideo(video));
         }
         JSONObject object = ResponseData.object("total", videoPage.getTotalElements());
         object.put("list", array);
         return ResponseData.success(object);
     }
 
+    public JSONObject getVideo(Video video) {
+        JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(video));
+        VideoClass videoClass = videoClassDao.findAllById(video.getVodClass());
+        if (videoClass != null) {
+            json.put("class", videoClass.getName());
+        }
+        VideoPay pay = videoPayDao.findAllByVideoId(video.getId());
+        if (pay != null) {
+            json.put("price", pay.getAmount());
+        }else {
+            json.put("price",0);
+        }
+        json.put("like", videoLikeDao.countAllByVideoId(video.getId()));
+        json.put("play",videoPlayDao.countAllByVideoId(video.getId()));
+        Long scale = videoPlayDao.getScale(video.getId());
+        Long count =  videoScaleDao.countAllByVideoId(video.getId());
+        if (scale > 0 || count > 0){
+            json.put("scale",new Double(scale * 1D / count * 100).longValue());
+        }else{
+            json.put("scale",0);
+        }
+        return json;
+    }
     public ResponseData delete(List<Long> ids, SysUser user, String ip) {
 //        System.out.println(ids);
         if (user == null) return ResponseData.error(201);
@@ -254,6 +266,7 @@ public class AVService {
 
     public ResponseData getOrderList(String title, int page, int limit, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
+        authDao.popInfo(EPayUtil.DIAMOND_ORDER);
         page--;
         if (page < 0) page = 0;
         if (limit < 0) limit = 20;
@@ -363,7 +376,7 @@ public class AVService {
         page--;
         if (page < 0) page = 0;
         if (limit < 0) limit = 20;
-        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"add_time"));
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"px"));
         Page<VideoConcentration> concentrationPage;
         if(StringUtils.isNotEmpty(title)){
             concentrationPage = videoConcentrationDao.getAllByName("%"+title+"%",pageable);
@@ -389,7 +402,7 @@ public class AVService {
         return ResponseData.success();
     }
 
-    public ResponseData addConcentration(String name, SysUser user, String ip) {
+    public ResponseData addConcentration(String name,int px, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
         if (StringUtils.isEmpty(name)) return ResponseData.error("类名必传!");
         name = name.replaceAll(" ", "");
@@ -397,14 +410,14 @@ public class AVService {
         name = name.trim();
         List<VideoConcentration> concentrations = videoConcentrationDao.findAllByName(name);
         if (concentrations.size() > 0) return ResponseData.error("类名已存在");
-        VideoConcentration concentration = new VideoConcentration(name);
+        VideoConcentration concentration = new VideoConcentration(name,px);
         videoConcentrationDao.saveAndFlush(concentration);
         JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(concentration));
         object.put("count", 0);
         return ResponseData.success(ResponseData.object("result", object));
     }
 
-    public ResponseData updateConcentration(long id, String name, SysUser user, String ip) {
+    public ResponseData updateConcentration(long id, String name,int px, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
         if (StringUtils.isEmpty(name)) return ResponseData.error("类名不允许为空!");
         if (id < 1) return ResponseData.error("记录不存在");
@@ -416,6 +429,7 @@ public class AVService {
         VideoConcentration c = videoConcentrationDao.findByName(name);
         if(c != null && c.getId() != id) return ResponseData.error("类名已重复");
         concentration.setName(name);
+        concentration.setPx(px);
         concentration.setUpdateTime(System.currentTimeMillis());
         videoConcentrationDao.saveAndFlush(concentration);
         JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(concentration));
@@ -510,20 +524,7 @@ public class AVService {
         }
         JSONArray array = new JSONArray();
         for (Video video : videoPage.getContent()) {
-            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(video));
-            VideoClass videoClass = videoClassDao.findAllById(video.getVodClass());
-            if (videoClass != null) {
-                json.put("class", videoClass.getName());
-            }
-            VideoPay pay = videoPayDao.findAllByVideoId(video.getId());
-            if (pay != null) {
-                json.put("price", pay.getAmount());
-            }else {
-                json.put("price",0);
-            }
-            json.put("like", videoLikeDao.countAllByVideoId(video.getId()));
-            json.put("play",videoPlayDao.countAllByVideoId(video.getId()));
-            array.add(json);
+            array.add(getVideo(video));
         }
         JSONObject object = ResponseData.object("total", videoPage.getTotalElements());
         object.put("list", array);
@@ -644,20 +645,7 @@ public class AVService {
         }
         JSONArray array = new JSONArray();
         for (Video video : videoPage.getContent()) {
-            JSONObject json = JSONObject.parseObject(JSONObject.toJSONString(video));
-            VideoClass videoClass = videoClassDao.findAllById(video.getVodClass());
-            if (videoClass != null) {
-                json.put("class", videoClass.getName());
-            }
-            VideoPay pay = videoPayDao.findAllByVideoId(video.getId());
-            if (pay != null) {
-                json.put("price", pay.getAmount());
-            }else {
-                json.put("price",0);
-            }
-            json.put("like", videoLikeDao.countAllByVideoId(video.getId()));
-            json.put("play",videoPlayDao.countAllByVideoId(video.getId()));
-            array.add(json);
+            array.add(getVideo(video));
         }
         JSONObject object = ResponseData.object("total", videoPage.getTotalElements());
         object.put("list", array);
@@ -1120,6 +1108,7 @@ public class AVService {
         }
         JSONObject object = ResponseData.object("total", orderPage.getTotalElements());
         object.put("list", array);
+        authDao.popInfo(EPayUtil.DIAMOND_ORDER);
         return ResponseData.success(object);
     }
 
@@ -1172,5 +1161,97 @@ public class AVService {
             diamondService.handlerOrder(order.getOrderNo());
         }
         return ResponseData.success(array);
+    }
+
+    public ResponseData getClassListVideo(SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        List<VideoClass> classList = videoClassDao.findAll();
+        JSONArray array = new JSONArray();
+        for (VideoClass videoClass : classList) {
+            JSONObject object = new JSONObject();
+            object.put("id", videoClass.getId());
+            object.put("name", videoClass.getName());
+            array.add(object);
+        }
+        return ResponseData.success(array);
+    }
+
+    public ResponseData updateClassVideo(List<Long> ids, long id, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        VideoClass videoClass = videoClassDao.findAllById(id);
+        if (videoClass == null) return ResponseData.error("分类不存在！");
+        List<Video> videoList = videoDao.findAllById(ids);
+        JSONArray array = new JSONArray();
+        for (int i = 0; i < videoList.size(); i++) {
+            videoList.get(i).setVodClass(id);
+            array.add(getVideo(videoList.get(i)));
+        }
+        videoDao.saveAllAndFlush(videoList);
+        return ResponseData.success(array);
+    }
+
+    public ResponseData getClassList(String title, int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0 || limit > 3000) limit = 30;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC, "px"));
+        Page<VideoClass> classPage;
+        if (StringUtils.isNotEmpty(title)){
+            classPage = videoClassDao.findAllByName(title, pageable);
+        }else{
+            classPage = videoClassDao.findAll(pageable);
+        }
+        JSONArray array = new JSONArray();
+        for (VideoClass videoClass: classPage.getContent()) {
+            array.add(getClassList(videoClass));
+        }
+        JSONObject object = new JSONObject();
+        object.put("list", array);
+        object.put("total", classPage.getTotalElements());
+        return ResponseData.success(object);
+    }
+    public JSONObject getClassList(VideoClass videoClass){
+        JSONObject object = JSONObject.parseObject(JSONObject.toJSONString(videoClass));
+        object.put("count", videoDao.countAllByVodClass(videoClass.getId()));
+        return object;
+    }
+    public ResponseData deleteClass(List<Long> ids, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        for (Long id : ids){
+            List<Video> videoList = videoDao.findAllByVodClass(id);
+            while(videoList.size() > 0){
+                for (int i = 0; i < videoList.size(); i++) {
+                    videoList.get(i).setVodClass(0);
+                }
+                videoDao.saveAllAndFlush(videoList);
+                videoList = videoDao.findAllByVodClass(id);
+            }
+        }
+        videoClassDao.deleteAllById(ids);
+        return ResponseData.success();
+    }
+
+    public ResponseData updateClass(long id, String name, int px, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        VideoClass videoClass = videoClassDao.findAllById(id);
+        if (videoClass == null) return ResponseData.error("分类不存在!");
+        name = name.replaceAll(" ", "").trim();
+        VideoClass c = videoClassDao.findAllByName(name);
+        if (c != null && c.getId() != id) return ResponseData.error("分类名重复!");
+        videoClass.setName(name);
+        videoClass.setPx(px);
+        videoClassDao.saveAndFlush(videoClass);
+        return ResponseData.success(ResponseData.object("result", getClassList(videoClass)));
+    }
+
+    public ResponseData addClass(String name,int px, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        name = name.replaceAll(" ", "").trim();
+        VideoClass c = videoClassDao.findAllByName(name);
+        if (c != null) return ResponseData.error("分类名重复!");
+        c = new VideoClass(name, px);
+        videoClassDao.saveAndFlush(c);
+        return ResponseData.success(ResponseData.object("result", getClassList(c)));
     }
 }

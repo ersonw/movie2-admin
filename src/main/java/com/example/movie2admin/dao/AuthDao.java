@@ -2,6 +2,7 @@ package com.example.movie2admin.dao;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.movie2admin.data.EPayData;
+import com.example.movie2admin.data.InfoData;
 import com.example.movie2admin.data.SearchData;
 import com.example.movie2admin.data.SmsCode;
 import com.example.movie2admin.entity.SysUser;
@@ -21,6 +22,52 @@ public class AuthDao {
     @Autowired
     private RedisTemplate redisTemplate;
     private static final Timer timer = new Timer();
+    public void pushInfo(int count, int type){
+        InfoData info = findInfoDataType(type);
+        if (info == null){
+            info = new InfoData();
+            info.setType(type);
+            info.setAddTime(System.currentTimeMillis());
+        }else {
+            popInfo(type);
+        }
+        info.setUpdateTime(System.currentTimeMillis());
+        info.setCount(info.getCount()+count);
+        redisTemplate.opsForSet().add("infos",JSONObject.toJSONString(info));
+    }
+    public void popInfo(int type){
+        Set infos = redisTemplate.opsForSet().members("infos");
+        if (infos != null){
+            for (Object o: infos) {
+                JSONObject jsonObject = JSONObject.parseObject(o.toString());
+                if (type == jsonObject.getInteger("type")){
+                    redisTemplate.opsForSet().remove("infos" ,JSONObject.toJSONString(JSONObject.toJavaObject(jsonObject,InfoData.class)));
+                }
+            }
+        }
+    }
+    public List<InfoData> getInfos(){
+        Set infos = redisTemplate.opsForSet().members("infos");
+        List<InfoData> list = new ArrayList<>();
+        if (infos != null){
+            for (Object info : infos){
+                list.add(JSONObject.toJavaObject(JSONObject.parseObject(info.toString()),InfoData.class));
+            }
+        }
+        return list;
+    }
+    public InfoData findInfoDataType(int type) {
+        Set infos = redisTemplate.opsForSet().members("infos");
+        if (infos != null){
+            for (Object o: infos) {
+                JSONObject jsonObject = JSONObject.parseObject(o.toString());
+                if (type == jsonObject.getInteger("type")){
+                    return JSONObject.toJavaObject(jsonObject,InfoData.class);
+                }
+            }
+        }
+        return null;
+    }
     public void pushOrder(EPayData data){
         EPayData object = findOrderByOrderId(data.getOut_trade_no());
         if (object != null){
@@ -157,14 +204,14 @@ public class AuthDao {
         if (StringUtils.isNotEmpty(userToken.getToken())) {
             Set users = redisTemplate.opsForSet().members("sysUsers");
             assert users != null;
-//        System.out.println(users.toString());
-            for (Object user: users) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                SysUser userEntity = objectMapper.convertValue(user, SysUser.class);
-                if (userEntity.getToken().equals(userToken.getToken()) || (userEntity.getId() > 0 && userToken.getId() > 0 && userEntity.getId() == userToken.getId())){
-                    popUser(userEntity);
-                }
-            }
+//            单设备登录
+//            for (Object user: users) {
+//                ObjectMapper objectMapper = new ObjectMapper();
+//                SysUser userEntity = objectMapper.convertValue(user, SysUser.class);
+//                if (userEntity.getToken().equals(userToken.getToken()) || (userEntity.getId() > 0 && userToken.getId() > 0 && userEntity.getId() == userToken.getId())){
+//                    popUser(userEntity);
+//                }
+//            }
             redisTemplate.opsForSet().add("sysUsers",userToken);
         }
     }

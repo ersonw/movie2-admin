@@ -9,4 +9,8 @@ public class IndexControl {
     public String index(){
         return "index";
     }
+    @GetMapping(value = "/api/test")
+    public String test(){
+        return "index";
+    }
 }

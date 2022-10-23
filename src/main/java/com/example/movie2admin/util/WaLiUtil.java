@@ -46,7 +46,7 @@ public class WaLiUtil {
     public static final String KICK = "kick";
     public static final String GET_BALANCE = "getBalance";
     public static final String GET_RECORD_V2 = "getRecordV2";
-    private static final String prefix = "23porn_";
+    private static final String prefix = "CC";
     private static final Timer timer = new Timer();
 
     @Autowired
@@ -202,7 +202,6 @@ public class WaLiUtil {
     }
     @PostConstruct
     public void init(){
-        TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.of("+8")));
         self = this;
         rest();
     }

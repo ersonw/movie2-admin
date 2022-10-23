@@ -464,6 +464,7 @@ public class GameService {
 
     public ResponseData getGameOrderList(String title, int page, int limit, SysUser user, String ip) {
         if (user == null) return ResponseData.error(201);
+        authDao.popInfo(EPayUtil.GAME_ORDER);
         page--;
         if (page < 0) page = 0;
         if (limit < 0) limit = 20;
@@ -499,6 +500,7 @@ public class GameService {
         }
         JSONObject object = ResponseData.object("total", orderPage.getTotalElements());
         object.put("list", array);
+        authDao.popInfo(EPayUtil.GAME_ORDER);
         return ResponseData.success(object);
     }
 
@@ -598,6 +600,7 @@ public class GameService {
         }
         JSONObject object = ResponseData.object("total", orderPage.getTotalElements());
         object.put("list", array);
+        authDao.popInfo(6);
         return ResponseData.success(object);
     }
     public JSONObject getGameOutOrder(GameOutOrder order){

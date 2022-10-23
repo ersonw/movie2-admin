@@ -18,6 +18,12 @@ import org.springframework.web.bind.annotation.*;
 public class AVControl {
     @Autowired
     private AVService service;
+    @GetMapping("/getClassListVideo")
+    public ResponseData getClassListVideo(
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getClassListVideo(SysUser.getUser(user), ip);
+    }
     @GetMapping("/getAVList")
     public ResponseData getAVList(
             @RequestParam(value = "title", required = false,defaultValue = "") String title,
@@ -26,6 +32,11 @@ public class AVControl {
             @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
             @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
         return service.getAVList(title,page,limit,SysUser.getUser(user), ip);
+    }
+    @PostMapping("/updateClassVideo")
+    @ApiGlobalModel(component = pData.class, value = "ids,id")
+    public ResponseData updateClassVideo(@RequestBody pData data){
+        return service.updateClassVideo(data.getIds(),data.getId(),data.getUser(), data.getIp());
     }
     @PostMapping("/delete")
     @ApiGlobalModel(component = pData.class, value = "ids")
@@ -130,14 +141,14 @@ public class AVControl {
         return service.deleteConcentration(data.getIds(),data.getUser(), data.getIp());
     }
     @PostMapping("/addConcentration")
-    @ApiGlobalModel(component = pData.class, value = "name")
+    @ApiGlobalModel(component = pData.class, value = "name,px")
     public ResponseData addConcentration(@RequestBody pData data){
-        return service.addConcentration(data.getName(),data.getUser(), data.getIp());
+        return service.addConcentration(data.getName(),data.getPx(),data.getUser(), data.getIp());
     }
     @PostMapping("/updateConcentration")
-    @ApiGlobalModel(component = pData.class, value = "name,id")
+    @ApiGlobalModel(component = pData.class, value = "px,name,id")
     public ResponseData updateConcentration(@RequestBody pData data){
-        return service.updateConcentration(data.getId(),data.getName(),data.getUser(), data.getIp());
+        return service.updateConcentration(data.getId(),data.getName(),data.getPx(),data.getUser(), data.getIp());
     }
     @GetMapping("/getConcentrationList/{id}")
     public ResponseData getConcentrationList(
@@ -343,5 +354,29 @@ public class AVControl {
     @ApiGlobalModel(component = pData.class, value = "ids")
     public ResponseData makeupDiamondOrder(@RequestBody pData data){
         return service.makeupDiamondOrder(data.getIds(),data.getUser(), data.getIp());
+    }
+    @GetMapping("/getClassList")
+    public ResponseData getClassList(
+            @RequestParam(value = "title", required = false,defaultValue = "") String title,
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getClassList(title,page,limit, SysUser.getUser(user), ip);
+    }
+    @PostMapping("/deleteClass")
+    @ApiGlobalModel(component = pData.class, value = "ids")
+    public ResponseData deleteClass(@RequestBody pData data){
+        return service.deleteClass(data.getIds(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/updateClass")
+    @ApiGlobalModel(component = pData.class, value = "px,name,id")
+    public ResponseData updateClass(@RequestBody pData data){
+        return service.updateClass(data.getId(),data.getName(),data.getPx(),data.getUser(), data.getIp());
+    }
+    @PostMapping("/addClass")
+    @ApiGlobalModel(component = pData.class, value = "name,px")
+    public ResponseData addClass(@RequestBody pData data){
+        return service.addClass(data.getName(),data.getPx(),data.getUser(), data.getIp());
     }
 }

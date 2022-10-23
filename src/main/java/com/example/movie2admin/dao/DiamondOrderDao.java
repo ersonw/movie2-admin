@@ -19,4 +19,11 @@ public interface DiamondOrderDao extends JpaRepository<DiamondOrder, Long>, Crud
 
     @Query(value = "SELECT IFNULL( SUM(cio.total_fee), 0.0 ) FROM diamond_order AS mo INNER JOIN cash_in_order as cio ON cio.order_no=mo.order_no AND cio.status = 1 WHERE mo.user_id=:id",nativeQuery = true)
     Double getAllByUserId(long id);
+
+    @Query(value = "SELECT IFNULL( SUM(cio.total_fee), 0.0 ) FROM diamond_order AS go1 INNER JOIN cash_in_order as cio ON cio.order_no=go1.order_no AND cio.status = 1 ",nativeQuery = true)
+    Double getAll();
+    @Query(value = "SELECT IFNULL( SUM(cio.total_fee), 0.0 ) FROM diamond_order AS go1 INNER JOIN cash_in_order as cio ON cio.order_no=go1.order_no AND cio.status = 1 WHERE go1.add_time>:t1",nativeQuery = true)
+    Double getAll(long t1);
+    @Query(value = "SELECT IFNULL( SUM(cio.total_fee), 0.0 ) FROM diamond_order AS go1 INNER JOIN cash_in_order as cio ON cio.order_no=go1.order_no AND cio.status = 1 WHERE go1.add_time>:t1 AND go1.add_time<:t2",nativeQuery = true)
+    Double getAll(long t1, long t2);
 }

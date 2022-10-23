@@ -20,4 +20,5 @@ public class AgentRecord {
     private long userId;
     private long addTime;
     private long updateTime;
+    private String ip;
 }

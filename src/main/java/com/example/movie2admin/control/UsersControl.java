@@ -119,4 +119,14 @@ public class UsersControl {
     public ResponseData updateSpreadConfig(@RequestBody JSONObject data){
         return service.updateSpreadConfig(data);
     }
+    @GetMapping("/getShareConfig")
+    public ResponseData getShareConfig(
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getShareConfig(SysUser.getUser(user), ip);
+    }
+    @PostMapping("/updateShareConfig")
+    public ResponseData updateShareConfig(@RequestBody JSONObject data){
+        return service.updateShareConfig(data);
+    }
 }

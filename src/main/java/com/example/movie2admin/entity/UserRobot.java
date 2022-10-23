@@ -9,15 +9,14 @@ import javax.persistence.*;
 @Setter
 @Getter
 @Entity
-@Table(name = "user_spread_record")
+@Table(name = "user_robot")
 @Cacheable
 @ToString(includeFieldNames = true)
-public class UserSpreadRecord {
+public class UserRobot {
     @Id
     @GeneratedValue
     private long id;
-    private long shareUserId;
     private long userId;
-    private String ip;
     private long addTime;
+    private long updateTime;
 }

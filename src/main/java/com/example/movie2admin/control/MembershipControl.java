@@ -140,9 +140,9 @@ public class MembershipControl {
         return service.deleteButton(data.getIds(),data.getUser(), data.getIp());
     }
     @PostMapping("/updateButton")
-    @ApiGlobalModel(component = pData.class, value = "amount,price,original,gameCoin,experience,cashInId,status,id")
+    @ApiGlobalModel(component = pData.class, value = "name,amount,price,original,gameCoin,experience,cashInId,status,id")
     public ResponseData updateButton(@RequestBody pData data){
-        return service.updateButton(data.getId(),data.getAmount(),data.getPrice(),data.getOriginal(),data.getGameCoin(),data.getExperience(),data.getCashInId(),data.getStatus(),data.getUser(), data.getIp());
+        return service.updateButton(data.getName(),data.getId(),data.getAmount(),data.getPrice(),data.getOriginal(),data.getGameCoin(),data.getExperience(),data.getCashInId(),data.getStatus(),data.getUser(), data.getIp());
     }
     @PostMapping("/addButton")
     @ApiGlobalModel(component = pData.class, value = "amount,price,original,gameCoin,experience,cashInId,status")
