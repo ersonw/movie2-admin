@@ -228,13 +228,28 @@ public class UsersService {
         page--;
         if (page < 0) page = 0;
         if (limit < 0) limit = 20;
-        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"addTime"));
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"add_time"));
         Page<User> userPage;
         if (StringUtils.isNotEmpty(title)) {
-            userPage = userDao.findAllByUsernameOrNicknameOrPhone("%"+title+"%","%"+title+"%","%"+title+"%",pageable);
+            userPage = userDao.getUserList("%"+title+"%",pageable);
         }else {
-            userPage = userDao.findAll(pageable);
+            userPage = userDao.getUserList(pageable);
         }
+        JSONArray array = new JSONArray();
+        for (User users : userPage.getContent()) {
+            array.add(getUsers(users));
+        }
+        JSONObject object = ResponseData.object("total", userPage.getTotalElements());
+        object.put("list", array);
+        return ResponseData.success(object);
+    }
+    public ResponseData getUserRobotList(int page, int limit, SysUser user, String ip) {
+        if (user == null) return ResponseData.error(201);
+        page--;
+        if (page < 0) page = 0;
+        if (limit < 0) limit = 20;
+        Pageable pageable = PageRequest.of(page,limit, Sort.by(Sort.Direction.DESC,"add_time"));
+        Page<User> userPage = userDao.getUserRobotList(pageable);
         JSONArray array = new JSONArray();
         for (User users : userPage.getContent()) {
             array.add(getUsers(users));
@@ -674,5 +689,9 @@ public class UsersService {
             configs.add(config);
         }
         return configs;
+    }
+
+    public ResponseData addUserRobot(SysUser user, String ip) {
+        return ResponseData.success();
     }
 }

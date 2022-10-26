@@ -26,6 +26,19 @@ public class UsersControl {
             @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
         return service.getUserList(title,page,limit, SysUser.getUser(user), ip);
     }
+    @GetMapping("/getUserRobotList")
+    public ResponseData getUserRobotList(
+            @RequestParam(value = "page", required = false,defaultValue = "1") int page,
+            @RequestParam(value = "limit", required = false,defaultValue = "20") int limit,
+            @RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.getUserRobotList(page,limit, SysUser.getUser(user), ip);
+    }
+    @GetMapping("/addUserRobot")
+    public ResponseData addUserRobot(@RequestParam(value = "ip") @ApiParam(hidden = true) String ip,
+            @RequestParam(value = "user",required = false) @ApiParam(hidden = true) String user){
+        return service.addUserRobot(SysUser.getUser(user), ip);
+    }
     @PostMapping("/deleteUser")
     @ApiGlobalModel(component = pData.class, value = "ids")
     public ResponseData deleteUser(@RequestBody pData data){

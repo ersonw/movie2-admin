@@ -24,6 +24,12 @@ public interface UserDao extends JpaRepository<User, Long>, CrudRepository<User,
 
     @Query(value = "SELECT u.* FROM `membership_expired` AS me INNER JOIN `user` u ON u.id=me.user_id WHERE me.user_id=:userId AND me.expired >:time ", nativeQuery = true)
     User getAllByMembership(long userId, long time);
+    @Query(value = "SELECT u.* FROM `user` AS u INNER JOIN user_robot ur ON u.id = ur.user_id", nativeQuery = true)
+    Page<User> getUserRobotList(Pageable pageable);
+    @Query(value = "SELECT * FROM `user` AS u WHERE NOT EXISTS (SELECT * FROM user_robot WHERE user_id = u.id)", nativeQuery = true)
+    Page<User> getUserList(Pageable pageable);
+    @Query(value = "SELECT * FROM `user` AS u WHERE NOT EXISTS (SELECT * FROM user_robot WHERE user_id = u.id) AND (u.username like :title OR u.nickname like :title OR u.phone like :title)", nativeQuery = true)
+    Page<User> getUserList(String title, Pageable pageable);
 
     Page<User> findAllByNickname(String s, Pageable pageable);
 
@@ -31,5 +37,6 @@ public interface UserDao extends JpaRepository<User, Long>, CrudRepository<User,
 
     Page<User> findAllByPhone(String s, Pageable pageable);
     Page<User> findAllByUsernameOrNicknameOrPhone(String username, String nickname,String phone,Pageable pageable);
+
 
 }
