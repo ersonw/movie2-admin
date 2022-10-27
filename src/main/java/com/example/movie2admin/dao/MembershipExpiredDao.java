@@ -16,8 +16,8 @@ public interface MembershipExpiredDao extends JpaRepository<MembershipExpired, L
     Long countAllByAddTimeGreaterThanEqual(long start);
     MembershipExpired findAllById(Long id);
     MembershipExpired findAllByUserId(Long userId);
-    @Query(value = "SELECT me.* FROM user AS u INNER JOIN membership_expired AS me ON u.id=me.id WHERE u.nickname LIKE :title",nativeQuery = true)
+    @Query(value = "SELECT me.* FROM `user` AS u INNER JOIN membership_expired AS me ON u.id=me.id WHERE u.nickname LIKE :title",nativeQuery = true)
     Page<MembershipExpired> getMembershipList(String title, Pageable pageable);
-    @Query(value = "SELECT me.* FROM membership_expired AS me INNER JOIN user AS u ON u.id=me.id",nativeQuery = true)
+    @Query(value = "SELECT me.* FROM membership_expired AS me INNER JOIN `user` AS u ON u.id=me.id",nativeQuery = true)
     Page<MembershipExpired> getMembershipList(Pageable pageable);
 }
