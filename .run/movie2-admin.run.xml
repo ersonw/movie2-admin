@@ -4,6 +4,14 @@
       <settings>
         <option name="imageTag" value="1350815230/movie2-admin" />
         <option name="containerName" value="movie2-admin" />
+        <option name="envVars">
+          <list>
+            <DockerEnvVarImpl>
+              <option name="name" value="MYSQL_HOST" />
+              <option name="value" value="chunchaoapp.rwlb.rds.aliyuncs.com" />
+            </DockerEnvVarImpl>
+          </list>
+        </option>
         <option name="portBindings">
           <list>
             <DockerPortBindingImpl>
